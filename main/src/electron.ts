@@ -1,7 +1,7 @@
 import { BrowserWindow, app, ipcMain, IpcMainInvokeEvent } from 'electron';
-import * as isDev from "electron-is-dev";;
-import * as path from 'path';
-import * as helpers from './helpers.js';
+import isDev from "electron-is-dev";;
+import path from 'path';
+import helpers from './helpers.js';
 import ytdl from 'ytdl-core';
 
 let mainWindow: BrowserWindow;
@@ -20,9 +20,9 @@ function createWindow() {
     );
     mainWindow.on("closed", () => (mainWindow.destroy()));
 
-    ipcMain.handle('getInfo', async (event: IpcMainInvokeEvent, link: string): Promise<ytdl.videoInfo | null> => {
-        console.log(event.sender);
-        return await helpers.default.getInfo(link);
+    ipcMain.handle('getInfo', async (_: IpcMainInvokeEvent, link: string): Promise<ytdl.videoInfo | null> => {
+        //console.log(event.sender);
+        return await helpers.getInfo(link);
     })
 }
 

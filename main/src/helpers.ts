@@ -1,8 +1,8 @@
 //import ytdl from 'ytdl-core';
-import * as stream from 'stream';
+import stream from 'stream';
 import fs from 'fs';
 import ffmpeg from 'fluent-ffmpeg';
-import * as ytdl from 'ytdl-core';
+import ytdl from 'ytdl-core';
 
 const outputDir = './output/';
 const tempDir = './temp/';

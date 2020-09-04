@@ -82,6 +82,10 @@ const SubmitButton = styled.input`
   font-size: 1.25rem;
   border-radius: 0.25rem;
   padding: 0.5rem;
+  &:focus {
+    outline: none;
+    border: 1px solid ${props => props.theme.colors.borderSecondary};
+  }
 `
 
 const LinkForm = styled.form`
@@ -139,6 +143,10 @@ const Start = styled.button`
   font-size: 1.25rem;
   border-radius: 0.25rem;
   padding: 0.5rem;
+  &:focus {
+    outline: none;
+    border: 1px solid ${props => props.theme.colors.borderSecondary};
+  }
 `
 
 let ipcRenderer: IpcRenderer = electron.ipcRenderer;

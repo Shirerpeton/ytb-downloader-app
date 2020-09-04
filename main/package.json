@@ -1,9 +1,10 @@
 {
   "name": "ytb-downloader-app",
   "version": "0.1.0",
-  "main": "./src/electron.js",
+  "main": "./dist/electron.js",
   "scripts": {
-    "start": "concurrently \"tsc ./src/electron.ts -w\"  \"cross-env NODE_ENV=dev nodemon --exec \"\"wait-on http://localhost:3000 && electron src/electron.js\"\""
+    "start": "concurrently \"tsc -w\"  \"cross-env NODE_ENV=dev nodemon --exec \"\"wait-on http://localhost:3000 && electron dist/electron.js\"\"",
+    "watch": "tsc -w"
   },
   "author": "Shirerpeton",
   "dependencies": {
@@ -12,6 +13,7 @@
     "ytdl-core": "^3.2.2"
   },
   "devDependencies": {
+    "@types/fluent-ffmpeg": "^2.1.14",
     "concurrently": "^5.3.0",
     "cross-env": "^7.0.2",
     "electron-is-dev": "^1.2.0",
