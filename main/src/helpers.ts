@@ -9,7 +9,6 @@ const tempDir = './temp/';
 
 const getInfo = async (link: string): Promise<ytdl.videoInfo | null> => {
     // validating video url
-    console.log(ytdl);
     const valid: boolean = ytdl.validateURL(link);
     if (!valid) {
         console.log('Invalid youtube URL');

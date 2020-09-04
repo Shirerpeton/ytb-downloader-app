@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, { useState } from 'react';
 import ytdl from 'ytdl-core';
 import { IpcRenderer } from 'electron';
 //import { IpcRendererEvent } from 'electron/main';
@@ -31,6 +31,7 @@ const theme: DefaultTheme = {
     background: '#191a1d',
     backgroundSecondary: '#333437',
     primary: 'white',
+    secondary: 'grey',
     border: '#cccccc',
     borderSecondary: 'white'
   }
@@ -47,6 +48,7 @@ const AppContainer = styled.div`
 
 
 const Container = styled.div`
+  width: 95vw;
   margin-top: 2rem;
   padding: 1rem;
   border: 1px solid ${props => props.theme.colors.border};
@@ -60,10 +62,15 @@ const Label = styled.label`
   padding: 0;
 `
 
-const LinkInput = styled.input`
+
+interface LinkInputProps {
+  readonly gettingInfo: boolean;
+};
+
+const LinkInput = styled.input<LinkInputProps>`
   padding: 0.75rem;
   background-color: ${props => props.theme.colors.backgroundSecondary};
-  color: ${props => props.theme.colors.primary};
+  color: ${props => !props.gettingInfo ? props.theme.colors.primary : props.theme.colors.secondary};
   border: 1px solid ${props => props.theme.colors.border};
   border-radius: 0.25rem;
   width: 25rem;
@@ -117,6 +124,7 @@ const SmallLabel = styled.span`
 `
 
 const Selector = styled.select`
+  margin: 0;
   width: 80%;
   padding: 0.25rem;
   background-color: ${props => props.theme.colors.backgroundSecondary};
@@ -149,20 +157,33 @@ const Start = styled.button`
   }
 `
 
+const Option = styled.option`
+  position: relative;
+`
+
 let ipcRenderer: IpcRenderer = electron.ipcRenderer;
 
 // ipcRenderer.on('response', (event: IpcRendererEvent, args: any) => {
 //   console.log(args);
 // })
 
+interface ytbVideoInfo {
+  info: ytdl.videoInfo,
+  audioFormats: ytdl.videoFormat[],
+  videoFormats: ytdl.videoFormat[]
+}
+
 const App: React.FC = () => {
   const [link, setLink] = useState<string>('');
-  const [info, setInfo] = useState<ytdl.videoInfo | null>(null);
-  const [audioFormats, setAudioFormats] = useState<ytdl.videoFormat[] | null>(null);
-  const [videoFormats, setVideoFormats] = useState<ytdl.videoFormat[] | null>(null);
+  // const [info, setInfo] = useState<ytdl.videoInfo | null>(null);
+  // const [audioFormats, setAudioFormats] = useState<ytdl.videoFormat[] | null>(null);
+  // const [videoFormats, setVideoFormats] = useState<ytdl.videoFormat[] | null>(null);
   const [audioFormat, setAudioFormat] = useState<number>(0);
   const [videoFormat, setVideoFormat] = useState<number>(0);
   const [selectedFormat, setSelectedFormat] = useState<string>('');
+  const [gettingInfo, setGettingInfo] = useState<boolean>(false);
+
+  const [ytbVideoInfo, setYtbVideoInfo] = useState<ytbVideoInfo | null>(null);
 
   const config = {
     "defaultAudioFormat": "mp3",
@@ -173,14 +194,17 @@ const App: React.FC = () => {
 
   const handleSubmitInfo = async (event: React.SyntheticEvent): Promise<void> => {
     event.preventDefault();
+    setGettingInfo(true);
     const infoOrNull: ytdl.videoInfo | null = await ipcRenderer.invoke('getInfo', link);
     if (infoOrNull === null)
       console.log('Invalid url for youtube video');
     else {
-      setInfo(infoOrNull);
-      setAudioFormats(ytdl.filterFormats(infoOrNull.formats, 'audioonly'));
-      setVideoFormats(ytdl.filterFormats(infoOrNull.formats, 'videoonly'));
+      setYtbVideoInfo({info: infoOrNull, audioFormats: ytdl.filterFormats(infoOrNull.formats, 'audioonly'), videoFormats: ytdl.filterFormats(infoOrNull.formats, 'videoonly')})
+      // setInfo(infoOrNull);
+      // setAudioFormats(ytdl.filterFormats(infoOrNull.formats, 'audioonly'));
+      // setVideoFormats(ytdl.filterFormats(infoOrNull.formats, 'videoonly'));
     }
+    setGettingInfo(false);
   }
 
   const lengthIntoText = (totalSecondsString: string): string => {
@@ -220,16 +244,16 @@ const App: React.FC = () => {
   }
 
   const getAudioFormatNames = (): string[] => {
-    if (!audioFormats)
+    if (!ytbVideoInfo)
       return [];
-    const audioFormatsNames: string[] = ['0: None', ...audioFormats.map((format, ind) => `${String(ind + 1)}: audio bitrate: ${numberOrUndefined(format.audioBitrate)}; audio quality: ${audioQualityText(stringOrUndefined(format.audioQuality))}; audioChannels: ${numberOrUndefined(format.audioChannels)}; approximate size: ${Math.floor((Number(format.averageBitrate) / 1000))}mb`)];
+    const audioFormatsNames: string[] = ['0: None', ...ytbVideoInfo.audioFormats.map((format, ind) => `${String(ind + 1)}: audio bitrate: ${numberOrUndefined(format.audioBitrate)}; audio quality: ${audioQualityText(stringOrUndefined(format.audioQuality))}; audioChannels: ${numberOrUndefined(format.audioChannels)}; approximate size: ${Math.floor((Number(format.averageBitrate) / 1000))}mb`)];
     return audioFormatsNames;
   }
 
   const getVideoFormatNames = (): string[] => {
-    if (!videoFormats)
+    if (!ytbVideoInfo)
       return [];
-    const videoFormatsNames: string[] = ['0: None', ...videoFormats.map((format, ind) => `${String(ind + 1)}: video bitrate: ${format.bitrate}; width: ${numberOrUndefined(format.width)}; height: ${numberOrUndefined(format.height)}; fps: ${numberOrUndefined(format.fps)}; quality: ${format.quality}; approximate size: ${Math.floor((Number(format.averageBitrate) / 1000))}mb`)];
+    const videoFormatsNames: string[] = ['0: None', ...ytbVideoInfo.videoFormats.map((format, ind) => `${String(ind + 1)}: video bitrate: ${format.bitrate}; width: ${numberOrUndefined(format.width)}; height: ${numberOrUndefined(format.height)}; fps: ${numberOrUndefined(format.fps)}; quality: ${format.quality}; approximate size: ${Math.floor((Number(format.averageBitrate) / 1000))}mb`)];
     return videoFormatsNames;
   }
 
@@ -256,13 +280,13 @@ const App: React.FC = () => {
   };
 
   const startProcessing = async (): Promise<void> => {
-    if ((info === null) || (audioFormats === null) || (videoFormats === null))
+    if (ytbVideoInfo === null)
       return;
     console.log('here');
-    const actualAudioFormat = (audioFormat === 0) ? null : audioFormats[audioFormat - 1];
-    const actualVideoFormat = (videoFormat === 0) ? null : videoFormats[videoFormat - 1];
+    const actualAudioFormat = (audioFormat === 0) ? null : ytbVideoInfo.audioFormats[audioFormat - 1];
+    const actualVideoFormat = (videoFormat === 0) ? null : ytbVideoInfo.videoFormats[videoFormat - 1];
     if (selectedFormat !== '')
-      await ipcRenderer.invoke('process', info, actualAudioFormat, actualVideoFormat, selectedFormat);
+      await ipcRenderer.invoke('process', ytbVideoInfo.info, actualAudioFormat, actualVideoFormat, selectedFormat);
     //await ipcRenderer.invoke('convert', actualAudioFormat, actualVideoFormat, audioFileName, videoFileName);
   }
 
@@ -274,15 +298,15 @@ const App: React.FC = () => {
           <Container>
             <LinkForm onSubmit={handleSubmitInfo}>
               <Label htmlFor='link'>Youtube link:</Label>
-              <LinkInput type='text' id='link' value={link} onChange={(event) => { setLink(event.target.value) }} />
+              <LinkInput type='text' id='link' value={link} onChange={(event) => { if (!gettingInfo) setLink(event.target.value) }} gettingInfo={gettingInfo} />
               <SubmitButton type='submit' value='Get info' />
             </LinkForm>
             <Br />
             <Section>
               <SectionTitle>Video Info</SectionTitle>
-              <div><SmallLabel>Title:</SmallLabel> {info !== null ? info.videoDetails.title : ''}</div>
-              <div><SmallLabel>Author:</SmallLabel> {info !== null ? info.videoDetails.author.name : ''}</div>
-              <div><SmallLabel>Duration:</SmallLabel> {info !== null ? lengthIntoText(info.videoDetails.lengthSeconds) : ''}</div>
+              <div><SmallLabel>Title:</SmallLabel> {ytbVideoInfo !== null ? ytbVideoInfo.info.videoDetails.title : ''}</div>
+              <div><SmallLabel>Author:</SmallLabel> {ytbVideoInfo !== null ? ytbVideoInfo.info.videoDetails.author.name : ''}</div>
+              <div><SmallLabel>Duration:</SmallLabel> {ytbVideoInfo !== null ? lengthIntoText(ytbVideoInfo.info.videoDetails.lengthSeconds) : ''}</div>
             </Section>
             <Br />
             <Section>
@@ -290,13 +314,13 @@ const App: React.FC = () => {
               <SelectRow>
                 <SmallLabel>Audio Track:</SmallLabel>
                 <Selector onChange={selectTrack('audio')}>
-                  {info ? getAudioFormatNames().map((format: string, index: number) => <option value={index} key={index}>{format}</option>) : null}
+                  {ytbVideoInfo ? getAudioFormatNames().map((format: string, index: number) => <Option value={index} key={index}>{format}</Option>) : null}
                 </Selector>
               </SelectRow>
               <SelectRow>
                 <SmallLabel>Video Track:</SmallLabel>
                 <Selector onChange={selectTrack('video')}>
-                  {info ? getVideoFormatNames().map((format: string, index: number) => <option value={index} key={index}>{format}</option>) : null}
+                  {ytbVideoInfo ? getVideoFormatNames().map((format: string, index: number) => <Option value={index} key={index}>{format}</Option>) : null}
                 </Selector>
               </SelectRow>
             </Section>
@@ -306,8 +330,8 @@ const App: React.FC = () => {
               <SelectRow>
                 <SmallLabel>Format: </SmallLabel>
                 <Selector value={selectedFormat} onChange={(event) => { setSelectedFormat(event.target.value) }}>
-                  {info ? (videoFormat !== 0 ? config.videoFormats.map((format: string, index: number) => <option value={format} key={index}>{format}</option>) :
-                    ((audioFormat !== 0) ? config.audioFormats.map((format: string, index: number) => <option value={format} key={index}>{format}</option>) : null)) : null}
+                  {ytbVideoInfo ? (videoFormat !== 0 ? config.videoFormats.map((format: string, index: number) => <Option value={format} key={index}>{format}</Option>) :
+                    ((audioFormat !== 0) ? config.audioFormats.map((format: string, index: number) => <Option value={format} key={index}>{format}</Option>) : null)) : null}
                 </Selector>
               </SelectRow>
               <Start onClick={startProcessing}>Start</Start>
