@@ -1,6 +1,8 @@
-import { BrowserWindow, app, ipcMain, IpcMainEvent } from 'electron';
-import * as isDev from "electron-is-dev";
-import * as path from 'path'
+import { BrowserWindow, app, ipcMain, IpcMainInvokeEvent } from 'electron';
+import * as isDev from "electron-is-dev";;
+import * as path from 'path';
+import * as helpers from './helpers.js';
+import ytdl from 'ytdl-core';
 
 let mainWindow: BrowserWindow;
 
@@ -10,6 +12,7 @@ function createWindow() {
             nodeIntegration: true,
         }
     });
+    
     mainWindow.loadURL(
         isDev
             ? "http://localhost:3000"
@@ -17,13 +20,14 @@ function createWindow() {
     );
     mainWindow.on("closed", () => (mainWindow.destroy()));
 
-    ipcMain.on('channel', (event: IpcMainEvent, msg: any) => {
-        console.log(msg)
-        mainWindow.webContents.send('response', { title: 'mymessage', data: 1 });
+    ipcMain.handle('getInfo', async (event: IpcMainInvokeEvent, link: string): Promise<ytdl.videoInfo | null> => {
+        console.log(event.sender);
+        return await helpers.default.getInfo(link);
     })
 }
 
 app.on("ready", createWindow);
+
 app.on("window-all-closed", () => {
     if (process.platform !== "darwin") {
         app.quit();
