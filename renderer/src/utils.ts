@@ -26,4 +26,12 @@ const audioQualityText = (quality: string): string => {
     return `${hoursString}:${minutesString}:${secondsString}`;
   }
 
-  export default {audioQualityText, lengthIntoText};
+  const stringOrUndefined = (str: string | undefined): string => {
+    return str ? str : 'unknown';
+  }
+
+  const numberOrUndefined = (nbr: number | undefined): string => {
+    return nbr ? String(nbr) : 'unknown';
+  }
+
+  export default {audioQualityText, lengthIntoText, stringOrUndefined, numberOrUndefined};

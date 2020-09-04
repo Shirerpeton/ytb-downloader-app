@@ -123,25 +123,17 @@ const App: React.FC = () => {
     setGettingInfo(false);
   }
 
-  const stringOrUndefined = (str: string | undefined): string => {
-    return str ? str : 'unknown';
-  }
-
-  const numberOrUndefined = (nbr: number | undefined): string => {
-    return nbr ? String(nbr) : 'unknown';
-  }
-
   const getAudioFormatNames = (): string[] => {
     if (!ytbVideoInfo)
       return [];
-    const audioFormatsNames: string[] = ['0: None', ...ytbVideoInfo.audioFormats.map((format, ind) => `${String(ind + 1)}: audio bitrate: ${numberOrUndefined(format.audioBitrate)}; audio quality: ${utils.audioQualityText(stringOrUndefined(format.audioQuality))}; audioChannels: ${numberOrUndefined(format.audioChannels)}; approximate size: ${Math.floor((Number(format.averageBitrate) / 1000))}mb`)];
+    const audioFormatsNames: string[] = ['0: None', ...ytbVideoInfo.audioFormats.map((format, ind) => `${String(ind + 1)}: audio bitrate: ${utils.numberOrUndefined(format.audioBitrate)}; audio quality: ${utils.audioQualityText(utils.stringOrUndefined(format.audioQuality))}; audioChannels: ${utils.numberOrUndefined(format.audioChannels)}; approximate size: ${Math.floor((Number(format.averageBitrate) / 1000))}mb`)];
     return audioFormatsNames;
   }
 
   const getVideoFormatNames = (): string[] => {
     if (!ytbVideoInfo)
       return [];
-    const videoFormatsNames: string[] = ['0: None', ...ytbVideoInfo.videoFormats.map((format, ind) => `${String(ind + 1)}: video bitrate: ${format.bitrate}; width: ${numberOrUndefined(format.width)}; height: ${numberOrUndefined(format.height)}; fps: ${numberOrUndefined(format.fps)}; quality: ${format.quality}; approximate size: ${Math.floor((Number(format.averageBitrate) / 1000))}mb`)];
+    const videoFormatsNames: string[] = ['0: None', ...ytbVideoInfo.videoFormats.map((format, ind) => `${String(ind + 1)}: video bitrate: ${format.bitrate}; width: ${utils.numberOrUndefined(format.width)}; height: ${utils.numberOrUndefined(format.height)}; fps: ${utils.numberOrUndefined(format.fps)}; quality: ${format.quality}; approximate size: ${Math.floor((Number(format.averageBitrate) / 1000))}mb`)];
     return videoFormatsNames;
   }
 
@@ -170,7 +162,6 @@ const App: React.FC = () => {
   const startProcessing = async (): Promise<void> => {
     if (ytbVideoInfo === null)
       return;
-    console.log('here');
     const actualAudioFormat = (audioFormat === 0) ? null : ytbVideoInfo.audioFormats[audioFormat - 1];
     const actualVideoFormat = (videoFormat === 0) ? null : ytbVideoInfo.videoFormats[videoFormat - 1];
     if (extension !== '')
