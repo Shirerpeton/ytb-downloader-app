@@ -4,6 +4,8 @@ import { IpcRenderer } from 'electron';
 //import { IpcRendererEvent } from 'electron/main';
 import styled from 'styled-components';
 
+import utils from './utils'
+
 import LinkForm from './components/LinkForm'
 
 const electron = window.require('electron');  // require electron like this in all the files. Don't Use import from 'electron' syntax for importing IpcRender from electron.
@@ -16,7 +18,6 @@ const AppContainer = styled.div`
     color: ${props => props.theme.colors.primary};
     background-color: ${props => props.theme.colors.background};
 `
-
 
 const Container = styled.div`
   width: 95vw;
@@ -122,34 +123,6 @@ const App: React.FC = () => {
     setGettingInfo(false);
   }
 
-  const lengthIntoText = (totalSecondsString: string): string => {
-    const secondsNumber: number = Number(totalSecondsString);
-    const hours: number = Math.floor(secondsNumber / 3600);
-    const hoursString: string = ((hours < 10) ? '0' : '') + String(hours);
-    const minutes: number = Math.floor((secondsNumber - (hours * 3600)) / 60);
-    const minutesString: string = ((minutes < 10) ? '0' : '') + String(minutes);
-    const seconds: number = Math.floor(secondsNumber % 60);
-    const secondsString: string = ((seconds < 10) ? '0' : '') + String(seconds);
-    return `${hoursString}:${minutesString}:${secondsString}`;
-  }
-
-  const audioQualityText = (quality: string): string => {
-    switch (quality) {
-      case ('AUDIO_QUALITY_HIGH'):
-        return 'high';
-        break;
-      case ('AUDIO_QUALITY_MEDIUM'):
-        return 'medium';
-        break;
-      case ('AUDIO_QUALITY_LOW'):
-        return 'low';
-        break;
-      default:
-        return 'unknown';
-        break;
-    }
-  }
-
   const stringOrUndefined = (str: string | undefined): string => {
     return str ? str : 'unknown';
   }
@@ -161,7 +134,7 @@ const App: React.FC = () => {
   const getAudioFormatNames = (): string[] => {
     if (!ytbVideoInfo)
       return [];
-    const audioFormatsNames: string[] = ['0: None', ...ytbVideoInfo.audioFormats.map((format, ind) => `${String(ind + 1)}: audio bitrate: ${numberOrUndefined(format.audioBitrate)}; audio quality: ${audioQualityText(stringOrUndefined(format.audioQuality))}; audioChannels: ${numberOrUndefined(format.audioChannels)}; approximate size: ${Math.floor((Number(format.averageBitrate) / 1000))}mb`)];
+    const audioFormatsNames: string[] = ['0: None', ...ytbVideoInfo.audioFormats.map((format, ind) => `${String(ind + 1)}: audio bitrate: ${numberOrUndefined(format.audioBitrate)}; audio quality: ${utils.audioQualityText(stringOrUndefined(format.audioQuality))}; audioChannels: ${numberOrUndefined(format.audioChannels)}; approximate size: ${Math.floor((Number(format.averageBitrate) / 1000))}mb`)];
     return audioFormatsNames;
   }
 
@@ -214,7 +187,7 @@ const App: React.FC = () => {
               <SectionTitle>Video Info</SectionTitle>
               <div><SmallLabel>Title:</SmallLabel> {ytbVideoInfo !== null ? ytbVideoInfo.info.videoDetails.title : ''}</div>
               <div><SmallLabel>Author:</SmallLabel> {ytbVideoInfo !== null ? ytbVideoInfo.info.videoDetails.author.name : ''}</div>
-              <div><SmallLabel>Duration:</SmallLabel> {ytbVideoInfo !== null ? lengthIntoText(ytbVideoInfo.info.videoDetails.lengthSeconds) : ''}</div>
+              <div><SmallLabel>Duration:</SmallLabel> {ytbVideoInfo !== null ? utils.lengthIntoText(ytbVideoInfo.info.videoDetails.lengthSeconds) : ''}</div>
             </Section>
             <Br />
             <Section>

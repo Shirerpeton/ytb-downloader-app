@@ -8,7 +8,6 @@ const Label = styled.label`
   padding: 0;
 `
 
-
 interface LinkInputProps {
   readonly gettingInfo: boolean;
 };
@@ -48,10 +47,10 @@ const LinkForm = styled.form`
 `
 
 interface LinkFormProps {
-  handleSubmitInfo: (event: React.SyntheticEvent) => Promise<void>, 
-  link: string, 
-  setLink: React.Dispatch<React.SetStateAction<string>>, 
-  gettingInfo: boolean
+  readonly handleSubmitInfo: (event: React.SyntheticEvent) => Promise<void>, 
+  readonly link: string, 
+  readonly setLink: React.Dispatch<React.SetStateAction<string>>, 
+  readonly gettingInfo: boolean
 }
 
 const LinkFormComponent: React.FC<LinkFormProps> = (props: LinkFormProps) => {
