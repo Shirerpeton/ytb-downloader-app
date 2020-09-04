@@ -2,40 +2,11 @@ import React, { useState } from 'react';
 import ytdl from 'ytdl-core';
 import { IpcRenderer } from 'electron';
 //import { IpcRendererEvent } from 'electron/main';
-import styled, { createGlobalStyle, ThemeProvider, DefaultTheme } from 'styled-components'
+import styled from 'styled-components';
+
+import LinkForm from './components/LinkForm'
+
 const electron = window.require('electron');  // require electron like this in all the files. Don't Use import from 'electron' syntax for importing IpcRender from electron.
-
-const GlobalStyle = createGlobalStyle`
-  html,
-  body {
-    padding: 0;
-    margin: 0;
-    font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen,
-      Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
-    background-color: ${props => props.theme.colors.background};
-    font-size: 1.1rem;
-  }
-
-  a {
-    color: inherit;
-    text-decoration: none;
-  }
-
-  * {
-    box-sizing: border-box;
-  }
-`
-
-const theme: DefaultTheme = {
-  colors: {
-    background: '#191a1d',
-    backgroundSecondary: '#333437',
-    primary: 'white',
-    secondary: 'grey',
-    border: '#cccccc',
-    borderSecondary: 'white'
-  }
-}
 
 const AppContainer = styled.div`
     height: 100%;
@@ -53,52 +24,6 @@ const Container = styled.div`
   padding: 1rem;
   border: 1px solid ${props => props.theme.colors.border};
   border-radius: 0.5rem;
-`
-
-const Label = styled.label`
-  margin: 0;
-  margin-right: 1rem;
-  font-size: 1.5rem;
-  padding: 0;
-`
-
-
-interface LinkInputProps {
-  readonly gettingInfo: boolean;
-};
-
-const LinkInput = styled.input<LinkInputProps>`
-  padding: 0.75rem;
-  background-color: ${props => props.theme.colors.backgroundSecondary};
-  color: ${props => !props.gettingInfo ? props.theme.colors.primary : props.theme.colors.secondary};
-  border: 1px solid ${props => props.theme.colors.border};
-  border-radius: 0.25rem;
-  width: 25rem;
-  margin-right: 1rem;
-  font-size: 1rem;
-  &:focus {
-    outline: none;
-    border: 1px solid ${props => props.theme.colors.borderSecondary};
-  }
-`
-
-const SubmitButton = styled.input`
-  background-color: ${props => props.theme.colors.backgroundSecondary};
-  border: 1px solid ${props => props.theme.colors.border};
-  color: ${props => props.theme.colors.primary};
-  font-size: 1.25rem;
-  border-radius: 0.25rem;
-  padding: 0.5rem;
-  &:focus {
-    outline: none;
-    border: 1px solid ${props => props.theme.colors.borderSecondary};
-  }
-`
-
-const LinkForm = styled.form`
-  display: flex;
-  align-items: center;
-  justify-content: center;
 `
 
 const SectionTitle = styled.h2`
@@ -161,11 +86,7 @@ const Option = styled.option`
   position: relative;
 `
 
-let ipcRenderer: IpcRenderer = electron.ipcRenderer;
-
-// ipcRenderer.on('response', (event: IpcRendererEvent, args: any) => {
-//   console.log(args);
-// })
+const ipcRenderer: IpcRenderer = electron.ipcRenderer;
 
 interface ytbVideoInfo {
   info: ytdl.videoInfo,
@@ -175,12 +96,9 @@ interface ytbVideoInfo {
 
 const App: React.FC = () => {
   const [link, setLink] = useState<string>('');
-  // const [info, setInfo] = useState<ytdl.videoInfo | null>(null);
-  // const [audioFormats, setAudioFormats] = useState<ytdl.videoFormat[] | null>(null);
-  // const [videoFormats, setVideoFormats] = useState<ytdl.videoFormat[] | null>(null);
   const [audioFormat, setAudioFormat] = useState<number>(0);
   const [videoFormat, setVideoFormat] = useState<number>(0);
-  const [selectedFormat, setSelectedFormat] = useState<string>('');
+  const [extension, setExtension] = useState<string>('');
   const [gettingInfo, setGettingInfo] = useState<boolean>(false);
 
   const [ytbVideoInfo, setYtbVideoInfo] = useState<ytbVideoInfo | null>(null);
@@ -200,9 +118,6 @@ const App: React.FC = () => {
       console.log('Invalid url for youtube video');
     else {
       setYtbVideoInfo({info: infoOrNull, audioFormats: ytdl.filterFormats(infoOrNull.formats, 'audioonly'), videoFormats: ytdl.filterFormats(infoOrNull.formats, 'videoonly')})
-      // setInfo(infoOrNull);
-      // setAudioFormats(ytdl.filterFormats(infoOrNull.formats, 'audioonly'));
-      // setVideoFormats(ytdl.filterFormats(infoOrNull.formats, 'videoonly'));
     }
     setGettingInfo(false);
   }
@@ -262,7 +177,7 @@ const App: React.FC = () => {
       const newAudioFormat: number = Number(event.target.value);
       if (newAudioFormat === 0) {
         if (videoFormat === 0)
-          setSelectedFormat('');
+          setExtension('');
       }
       setAudioFormat(newAudioFormat);
     };
@@ -270,9 +185,9 @@ const App: React.FC = () => {
       const newVideoFormat: number = Number(event.target.value);
       if (newVideoFormat === 0) {
         if (audioFormat === 0)
-          setSelectedFormat('');
+          setExtension('');
         else
-          setSelectedFormat(config.defaultAudioFormat);
+          setExtension(config.defaultAudioFormat);
       }
       setVideoFormat(newVideoFormat);
     };
@@ -285,22 +200,15 @@ const App: React.FC = () => {
     console.log('here');
     const actualAudioFormat = (audioFormat === 0) ? null : ytbVideoInfo.audioFormats[audioFormat - 1];
     const actualVideoFormat = (videoFormat === 0) ? null : ytbVideoInfo.videoFormats[videoFormat - 1];
-    if (selectedFormat !== '')
-      await ipcRenderer.invoke('process', ytbVideoInfo.info, actualAudioFormat, actualVideoFormat, selectedFormat);
+    if (extension !== '')
+      await ipcRenderer.invoke('process', ytbVideoInfo.info, actualAudioFormat, actualVideoFormat, extension);
     //await ipcRenderer.invoke('convert', actualAudioFormat, actualVideoFormat, audioFileName, videoFileName);
   }
 
   return (
-    <React.Fragment>
-      <ThemeProvider theme={theme}>
-        <GlobalStyle />
         <AppContainer className="App">
           <Container>
-            <LinkForm onSubmit={handleSubmitInfo}>
-              <Label htmlFor='link'>Youtube link:</Label>
-              <LinkInput type='text' id='link' value={link} onChange={(event) => { if (!gettingInfo) setLink(event.target.value) }} gettingInfo={gettingInfo} />
-              <SubmitButton type='submit' value='Get info' />
-            </LinkForm>
+            <LinkForm handleSubmitInfo={handleSubmitInfo} link={link} setLink={setLink} gettingInfo={gettingInfo} />
             <Br />
             <Section>
               <SectionTitle>Video Info</SectionTitle>
@@ -329,7 +237,7 @@ const App: React.FC = () => {
               <SectionTitle>Convert</SectionTitle>
               <SelectRow>
                 <SmallLabel>Format: </SmallLabel>
-                <Selector value={selectedFormat} onChange={(event) => { setSelectedFormat(event.target.value) }}>
+                <Selector value={extension} onChange={(event) => { setExtension(event.target.value) }}>
                   {ytbVideoInfo ? (videoFormat !== 0 ? config.videoFormats.map((format: string, index: number) => <Option value={format} key={index}>{format}</Option>) :
                     ((audioFormat !== 0) ? config.audioFormats.map((format: string, index: number) => <Option value={format} key={index}>{format}</Option>) : null)) : null}
                 </Selector>
@@ -338,8 +246,6 @@ const App: React.FC = () => {
             </Section>
           </Container>
         </AppContainer>
-      </ThemeProvider>
-    </React.Fragment>
   );
 }
 
