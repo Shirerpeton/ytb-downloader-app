@@ -1,6 +1,6 @@
 {
   "name": "ytb-downloader-app",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "main": "./dist/electron.js",
   "scripts": {
     "start": "concurrently \"tsc -w\"  \"cross-env NODE_ENV=dev nodemon --exec \"\"wait-on http://localhost:3000 && electron dist/electron.js\"\"",

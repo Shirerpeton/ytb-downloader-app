@@ -9,18 +9,31 @@ let mainWindow: BrowserWindow;
 
 function createWindow() {
     mainWindow = new BrowserWindow({
-        width: 1200, height: 1000, webPreferences: {
+        width: 1000, 
+        height: 850,
+        minWidth: 900,
+        minHeight: 850,
+        webPreferences: {
             nodeIntegration: true,
-        }
+        },
+        show: false,
+        backgroundColor: '#191a1d'
     });
     
+    mainWindow.removeMenu();
+
+    mainWindow.webContents.on('did-finish-load', () => {
+        mainWindow.show();
+    });
+
     mainWindow.loadURL(
         isDev
             ? "http://localhost:3000"
             : `file://${path.join(__dirname, "../build/index.html")}`
     );
-    mainWindow.on("closed", () => (mainWindow.destroy()));
 
+    mainWindow.on("closed", () => (mainWindow.destroy()));
+    
     const sendStatusMessage = (status: string): void => {
         mainWindow.webContents.send('status-line-message', status);
     }
