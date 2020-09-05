@@ -2,16 +2,12 @@ const audioQualityText = (quality: string): string => {
     switch (quality) {
       case ('AUDIO_QUALITY_HIGH'):
         return 'high';
-        break;
       case ('AUDIO_QUALITY_MEDIUM'):
         return 'medium';
-        break;
       case ('AUDIO_QUALITY_LOW'):
         return 'low';
-        break;
       default:
         return 'unknown';
-        break;
     }
   }
 

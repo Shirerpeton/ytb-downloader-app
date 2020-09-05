@@ -42,10 +42,10 @@ const ProgressBar: React.FC<ProgressBarProps> = (props) => {
     const [progress, setProgress] = useState<number>(0);
 
     useEffect(() => {
-        props.ipcRenderer.on('progress-bar-progress', (event: IpcRendererEvent, data: number) => {
+        props.ipcRenderer.on('progress-bar-progress', (_: IpcRendererEvent, data: number) => {
             setProgress(data);
         });
-        props.ipcRenderer.on('progress-bar-toggle', (event: IpcRendererEvent, data: boolean) => {
+        props.ipcRenderer.on('progress-bar-toggle', (_: IpcRendererEvent, data: boolean) => {
             setIsActive(data);
         });
 
@@ -53,7 +53,7 @@ const ProgressBar: React.FC<ProgressBarProps> = (props) => {
             props.ipcRenderer.removeAllListeners('progress-bar-progress');
             props.ipcRenderer.removeAllListeners('progress-bar-toggle');
         };
-    }, []);
+    }, [props.ipcRenderer]);
 
     return (
         <Bar width={progress} isActive={isActive}>{progress + '%'}</Bar>

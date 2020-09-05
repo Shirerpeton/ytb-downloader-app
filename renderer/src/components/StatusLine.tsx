@@ -19,14 +19,14 @@ const StatusLine: React.FC<StatusLineProps> = (props) => {
     const [status, setStatus] = useState<string>('---');
 
     useEffect(() => {
-        props.ipcRenderer.on('status-line-message', (event: IpcRendererEvent, status: string) => {
+        props.ipcRenderer.on('status-line-message', (_: IpcRendererEvent, status: string) => {
             setStatus(status);
         });
 
         return () => {
             props.ipcRenderer.removeAllListeners('status-line-message');
         };
-    }, []);
+    }, [props.ipcRenderer]);
 
     return (
         <Status>{status}</Status>

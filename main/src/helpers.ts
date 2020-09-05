@@ -4,8 +4,6 @@ import fs from 'fs';
 import ffmpeg from 'fluent-ffmpeg';
 import ytdl from 'ytdl-core';
 
-const ffmpegPath = require('@ffmpeg-installer/ffmpeg');
-
 const outputDir = './output/';
 const tempDir = './temp/';
 
@@ -105,7 +103,7 @@ interface ConvertFunc {
 const convert: ConvertFunc = async (info, audioFormat, videoFormat, audioFileName, videoFileName, selectedFormat, sendProgressMessage) => {
     const title: string = (info.videoDetails.title).replace(/[\<\>\:\"\/\\\/\|\?\*]/g, '_');
     const ffmpegInstaller = require('@ffmpeg-installer/ffmpeg');
-    ffmpeg.setFfmpegPath(ffmpegInstaller.path);
+    ffmpeg.setFfmpegPath(ffmpegInstaller.path.replace('app.asar', 'app.asar.unpacked'));
 
     await fs.promises.mkdir(outputDir, { recursive: true });
 

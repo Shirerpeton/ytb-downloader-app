@@ -1,7 +1,7 @@
 {
   "name": "ytb-downloader-app",
   "description": "App for downloading video and audio from youtube",
-  "version": "0.1.0",
+  "version": "0.9.0",
   "private": true,
   "author": "Shirerpeton",
   "homepage": "./",
@@ -15,12 +15,14 @@
       "buildResources": "assets"
     },
     "win": {
-      "target": "portable",
+      "target": "dir",
       "icon": "assets/app.ico"
     }
   },
   "dependencies": {
+    "@ffmpeg-installer/ffmpeg": "^1.0.20",
     "electron-is-dev": "^1.2.0",
+    "fluent-ffmpeg": "^2.1.2",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
     "react-scripts": "^3.4.3",
@@ -32,10 +34,10 @@
     "react-build": "react-scripts build",
     "react-test": "react-scripts test --env=jsdom",
     "react-eject": "react-scripts eject",
-    "react-prebuild": "cross-env cp ../main/src/*.js public/",
+    "react-prebuild": "cross-env copy ../main/src/*.js public/",
     "electron-build": "electron-builder",
     "release": "npm run react-prebuild && npm run react-build && electron-builder --publish=always",
-    "build": "npm run react-prebuild && npm run react-build && npm run electron-build",
+    "build": "npm run react-build && npm run electron-build",
     "start": "cross-env BROWSER=none npm run react-start"
   },
   "eslintConfig": {

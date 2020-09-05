@@ -24,8 +24,6 @@ function createWindow() {
         return await helpers.getInfo(link);
     });
     ipcMain.handle('process', async (_: IpcMainInvokeEvent, info: ytdl.videoInfo, audioFormat: ytdl.videoFormat, videoFormat: ytdl.videoFormat, extension: string): Promise<void> => {
-        console.log('process call');
-        console.log('extension: ' + extension);
         const sendProgressMessage = (progress: number): void => {
             mainWindow.webContents.send('progress-bar-progress', progress);
         }
