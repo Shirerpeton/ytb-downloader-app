@@ -38,7 +38,8 @@ const theme: DefaultTheme = {
     primary: 'white',
     secondary: 'grey',
     border: '#cccccc',
-    borderSecondary: 'white'
+    borderSecondary: 'white',
+    error: '#B00020'
   }
 }
 

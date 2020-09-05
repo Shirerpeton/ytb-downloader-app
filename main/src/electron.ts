@@ -3,7 +3,7 @@ import isDev from "electron-is-dev";;
 import path from 'path';
 import helpers from './helpers.js';
 import ytdl from 'ytdl-core';
-import AppConfig from './types/types.js';
+import { AppConfig, Messages} from './types/types.js';
 
 let mainWindow: BrowserWindow;
 
@@ -20,7 +20,7 @@ function createWindow() {
         backgroundColor: '#191a1d'
     });
     
-    mainWindow.removeMenu();
+    //mainWindow.removeMenu();
 
     mainWindow.webContents.on('did-finish-load', () => {
         mainWindow.show();
@@ -38,20 +38,33 @@ function createWindow() {
         mainWindow.webContents.send('status-line-message', status);
     }
 
+    const sendProgressMessage = (progress: number): void => {
+        mainWindow.webContents.send('progress-bar-progress', progress);
+    }
+
+    const sendErrorMessage = (error: string): void => {
+        mainWindow.webContents.send('error-message', error);
+    }
+
+    const msg: Messages = {sendStatusMessage, sendProgressMessage, sendErrorMessage}
+
     ipcMain.handle('getInfo', async (_: IpcMainInvokeEvent, link: string): Promise<ytdl.videoInfo | null> => {
         return await helpers.getInfo(link);
     });
-    ipcMain.handle('getConfig', async (_: IpcMainInvokeEvent): Promise<AppConfig> => {
-        return await helpers.loadConfig(sendStatusMessage);
+
+    ipcMain.handle('detectFfmpeg', async (): Promise<boolean> => {
+        return await helpers.detectFfmpeg(msg);
     });
+
+    ipcMain.handle('getConfig', async (_: IpcMainInvokeEvent): Promise<AppConfig> => {
+        return await helpers.loadConfig(msg);
+    });
+
     ipcMain.handle('process', async (_: IpcMainInvokeEvent, info: ytdl.videoInfo, audioFormat: ytdl.videoFormat, videoFormat: ytdl.videoFormat, extension: string): Promise<void> => {
-        const sendProgressMessage = (progress: number): void => {
-            mainWindow.webContents.send('progress-bar-progress', progress);
-        }
         mainWindow.webContents.send('progress-bar-toggle', true);
-        const {audioFileName, videoFileName} = await helpers.download(info, audioFormat, videoFormat, sendProgressMessage, sendStatusMessage);
+        const {audioFileName, videoFileName} = await helpers.download(info, audioFormat, videoFormat, msg);
         sendStatusMessage('Converting files');
-        await helpers.convert(info, audioFormat, videoFormat, audioFileName, videoFileName, extension, sendProgressMessage);
+        await helpers.convert(info, audioFormat, videoFormat, audioFileName, videoFileName, extension, msg);
         sendStatusMessage('Cleaning up');
         await helpers.cleanUp(audioFileName, videoFileName);
         sendStatusMessage('Done');

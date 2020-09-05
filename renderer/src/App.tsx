@@ -9,6 +9,8 @@ import utils from './utils'
 import LinkForm from './components/LinkForm'
 import ProgressBar from './components/ProgressBar'
 import StatusLine from './components/StatusLine'
+import ErrorMessage from './components/ErrorMessage'
+
 import AppConfig from './types';
 
 const electron = window.require('electron');  // require electron like this in all the files. Don't Use import from 'electron' syntax for importing IpcRender from electron.
@@ -24,7 +26,7 @@ const AppContainer = styled.div`
 
 const Container = styled.div`
   width: 95vw;
-  margin-top: 2rem;
+  margin-top: 1rem;
   padding: 1rem;
   border: 1px solid ${props => props.theme.colors.border};
   border-radius: 0.5rem;
@@ -118,11 +120,15 @@ const App: React.FC = () => {
   const [ytbVideoInfo, setYtbVideoInfo] = useState<ytbVideoInfo | null>(null);
 
   useEffect(() => {
+    const detectFfmpeg = async (): Promise<boolean> => {
+      return await ipcRenderer.invoke('detectFfmpeg');
+    }
     const getConfig = async (): Promise<void> => {
       const newConfig: AppConfig = await ipcRenderer.invoke('getConfig');
       setConfig(newConfig);
     }
     getConfig();
+    detectFfmpeg();
   }, []);
 
   const handleSubmitInfo = async (event: React.SyntheticEvent): Promise<void> => {
@@ -199,6 +205,7 @@ const App: React.FC = () => {
 
   return (
     <AppContainer className="App">
+      <ErrorMessage ipcRenderer={ipcRenderer}/>
       <Container>
         <LinkForm handleSubmitInfo={handleSubmitInfo} link={link} setLink={setLink} gettingInfo={gettingInfo} />
         <Br />

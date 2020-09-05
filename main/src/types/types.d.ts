@@ -1,4 +1,4 @@
-interface AppConfig {
+export interface AppConfig {
     [string]: any,
     audioFormats: string[],
     videoFormats: string[],
@@ -8,4 +8,8 @@ interface AppConfig {
     highestQuality: boolean
 }
 
-export default AppConfig;
+export interface Messages {
+    sendProgressMessage: (progress: number) => void,
+    sendStatusMessage: (status: string) => void,
+    sendErrorMessage: (error: string) => void
+}

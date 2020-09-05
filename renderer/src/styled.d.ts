@@ -10,7 +10,8 @@ declare module 'styled-components' {
         primary: string,
         secondary: string,
         border: string,
-        borderSecondary: string
+        borderSecondary: string,
+        error: string
     }
   }
 }

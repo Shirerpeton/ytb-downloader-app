@@ -4,11 +4,12 @@ import fs from 'fs';
 import ffmpeg from 'fluent-ffmpeg';
 import ytdl from 'ytdl-core';
 
-import AppConfig from './types/types';
+import { AppConfig, Messages } from './types/types';
 
 const outputDir = './output/';
 const tempDir = './temp/';
 const configFile = './config.cfg'
+const ffmpegPath = './ffmpeg/bin/ffmpeg.exe'
 
 const getInfo = async (link: string): Promise<ytdl.videoInfo | null> => {
     // validating video url
@@ -41,12 +42,11 @@ interface downloadFunc {
         info: ytdl.videoInfo,
         audioFormat: ytdl.videoFormat | null,
         videoFormat: ytdl.videoFormat | null,
-        sendProgressMessage: (progress: number) => void,
-        sendStatusMessage: (status: string) => void
+        msg: Messages
     ): Promise<fileNames>
 }
 
-const download: downloadFunc = async (info, audioFormat, videoFormat, sendProgressMessage, sendStatusMessage) => {
+const download: downloadFunc = async (info, audioFormat, videoFormat, msg) => {
     const title: string = (info.videoDetails.title).replace(/[\<\>\:\"\/\\\/\|\?\*]/g, '_');
     let audioFileName: string = '';
 
@@ -58,12 +58,12 @@ const download: downloadFunc = async (info, audioFormat, videoFormat, sendProgre
         const audioStream = ytdl.downloadFromInfo(info, { format: audioFormat });
         audioStream.on('progress', (_, segmentsDownloaded: number, segments: number) => {
             const progress: number = Math.floor((segmentsDownloaded / segments) * 100);
-            sendProgressMessage(progress);
+            msg.sendProgressMessage(progress);
         })
-        sendStatusMessage('Downloading audio');
-        sendProgressMessage(0);
+        msg.sendStatusMessage('Downloading audio');
+        msg.sendProgressMessage(0);
         await downloadStream(audioStream, tempDir + audioFileName);
-        sendProgressMessage(100);
+        msg.sendProgressMessage(100);
     }
 
     //video download
@@ -73,12 +73,12 @@ const download: downloadFunc = async (info, audioFormat, videoFormat, sendProgre
         const videoStream = ytdl.downloadFromInfo(info, { format: videoFormat });
         videoStream.on('progress', (_, segmentsDownloaded: number, segments: number) => {
             const progress: number = Math.floor((segmentsDownloaded / segments) * 100);
-            sendProgressMessage(progress);
+            msg.sendProgressMessage(progress);
         });
-        sendStatusMessage('Downloading video');
-        sendProgressMessage(0);
+        msg.sendStatusMessage('Downloading video');
+        msg.sendProgressMessage(0);
         await downloadStream(videoStream, tempDir + videoFileName);
-        sendProgressMessage(100);
+        msg.sendProgressMessage(100);
     }
     return { audioFileName, videoFileName };
 }
@@ -99,13 +99,12 @@ interface ConvertFunc {
         videoFormat: ytdl.videoFormat | null, audioFileName: string,
         videoFileName: string,
         selectedFormat: string,
-        sendProgressMessage: (progress: number) => void
+        msg: Messages
     ): Promise<void>
 }
 
-const convert: ConvertFunc = async (info, audioFormat, videoFormat, audioFileName, videoFileName, selectedFormat, sendProgressMessage) => {
+const convert: ConvertFunc = async (info, audioFormat, videoFormat, audioFileName, videoFileName, selectedFormat, msg) => {
     const title: string = (info.videoDetails.title).replace(/[\<\>\:\"\/\\\/\|\?\*]/g, '_');
-    const ffmpegPath = './ffmpeg/bin/ffmpeg.exe'
     ffmpeg.setFfmpegPath(ffmpegPath);
     await fs.promises.mkdir(outputDir, { recursive: true });
 
@@ -133,13 +132,13 @@ const convert: ConvertFunc = async (info, audioFormat, videoFormat, audioFileNam
             console.log('An error occurred: ' + err.message)
         });
         query.on('start', () => {
-            sendProgressMessage(0);
+            msg.sendProgressMessage(0);
         });
         query.on('progress', progress => {
-            sendProgressMessage(Math.floor(progress.percent));
+            msg.sendProgressMessage(Math.floor(progress.percent));
         });
         await convertFiles(query);
-        sendProgressMessage(100);
+        msg.sendProgressMessage(100);
     } else if (audioFormat) {
         //audio only
         const query = ffmpeg().input(tempDir + audioFileName).noVideo();
@@ -163,13 +162,13 @@ const convert: ConvertFunc = async (info, audioFormat, videoFormat, audioFileNam
             console.log('An error occurred: ' + err.message)
         });
         query.on('start', () => {
-            sendProgressMessage(0);
+            msg.sendProgressMessage(0);
         });
         query.on('progress', progress => {
-            sendProgressMessage(Math.floor(progress.percent));
+            msg.sendProgressMessage(Math.floor(progress.percent));
         });
         await convertFiles(query);
-        sendProgressMessage(100);
+        msg.sendProgressMessage(100);
     }
 }
 
@@ -180,7 +179,17 @@ const cleanUp = async (audioFileName: string, videoFileName: string): Promise<vo
         await fs.promises.unlink(tempDir + videoFileName);
 }
 
-const loadConfig = async (sendStatusMessage: (status: string) => void): Promise<AppConfig> => {
+const detectFfmpeg = async (msg: Messages): Promise<boolean> => {
+    try {
+        await fs.promises.access(ffmpegPath);
+        return true;
+    } catch (_) {
+        msg.sendErrorMessage('ffmpeg is not detected!');
+        return false;
+    }
+}
+
+const loadConfig = async (msg: Messages): Promise<AppConfig> => {
     const defaultConfig: AppConfig = {
         defaultAudioFormat: 'mp3',
         defaultVideoFormat: 'mkv',
@@ -208,7 +217,7 @@ const loadConfig = async (sendStatusMessage: (status: string) => void): Promise<
         if ((pair.length === 1) && (pair[0] === ''))
             continue;
         if (pair.length !== 2) {
-            sendStatusMessage('Bad config file!');
+            msg.sendErrorMessage('Bad config file!');
             return defaultConfig;
         }
         if (defaultConfig.hasOwnProperty(pair[0])) {
@@ -221,7 +230,7 @@ const loadConfig = async (sendStatusMessage: (status: string) => void): Promise<
             else if ((pair[0] === 'onlyAudio') && ((pair[1] === 'true') || (pair[1] === 'false')))
                 config[pair[0]] = pair[1] === 'true' ? true : false;
             else {
-                sendStatusMessage('Bad config file!');
+                msg.sendErrorMessage('Bad config file!');
                 return defaultConfig;
             }
         }
@@ -229,4 +238,4 @@ const loadConfig = async (sendStatusMessage: (status: string) => void): Promise<
     return config;
 }
 
-export default { getInfo, download, convert, cleanUp, loadConfig };
+export default { getInfo, download, convert, cleanUp, loadConfig, detectFfmpeg};
