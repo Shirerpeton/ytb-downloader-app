@@ -4,8 +4,11 @@ import fs from 'fs';
 import ffmpeg from 'fluent-ffmpeg';
 import ytdl from 'ytdl-core';
 
+import AppConfig from './types/types';
+
 const outputDir = './output/';
 const tempDir = './temp/';
+const configFile = './config.cfg'
 
 const getInfo = async (link: string): Promise<ytdl.videoInfo | null> => {
     // validating video url
@@ -102,9 +105,8 @@ interface ConvertFunc {
 
 const convert: ConvertFunc = async (info, audioFormat, videoFormat, audioFileName, videoFileName, selectedFormat, sendProgressMessage) => {
     const title: string = (info.videoDetails.title).replace(/[\<\>\:\"\/\\\/\|\?\*]/g, '_');
-    const ffmpegInstaller = require('@ffmpeg-installer/ffmpeg');
-    ffmpeg.setFfmpegPath(ffmpegInstaller.path.replace('app.asar', 'app.asar.unpacked'));
-
+    const ffmpegPath = './ffmpeg/bin/ffmpeg.exe'
+    ffmpeg.setFfmpegPath(ffmpegPath);
     await fs.promises.mkdir(outputDir, { recursive: true });
 
     if (videoFormat) {
@@ -142,20 +144,21 @@ const convert: ConvertFunc = async (info, audioFormat, videoFormat, audioFileNam
         //audio only
         const query = ffmpeg().input(tempDir + audioFileName).noVideo();
         let audioBitrate: string = '128k';
+        let audioQuality: string = '-q:a 1';
         if (audioFormat.audioBitrate) {
             if (audioFormat.audioBitrate <= 64)
-                audioBitrate = '64k';
+                audioQuality = '-q:a 8';
             else if (audioFormat.audioBitrate <= 128)
-                audioBitrate = '128k';
+                audioQuality = '-q:a 5';
             else if (audioFormat.audioBitrate <= 160)
-                audioBitrate = '160k';
+                audioQuality = '-q:a 2';
             else if (audioFormat.audioBitrate <= 256)
-                audioBitrate = '256k';
+                audioQuality = '-q:a 0';
         }
         if (selectedFormat === 'aac')
             query.audioCodec('aac').audioBitrate(audioBitrate).output(outputDir + title + '.' + selectedFormat).outputOptions(['-profile:v high', '-level:v 4.0', '-metadata:s:a:0 language=']);
         else (selectedFormat === 'mp3')
-        query.audioBitrate(audioBitrate).output(outputDir + title + '.' + selectedFormat);
+        query.audioCodec('libmp3lame').output(outputDir + title + '.' + selectedFormat).outputOptions([audioQuality]);
         query.on('error', err => {
             console.log('An error occurred: ' + err.message)
         });
@@ -177,4 +180,53 @@ const cleanUp = async (audioFileName: string, videoFileName: string): Promise<vo
         await fs.promises.unlink(tempDir + videoFileName);
 }
 
-export default { getInfo, download, convert, cleanUp };
+const loadConfig = async (sendStatusMessage: (status: string) => void): Promise<AppConfig> => {
+    const defaultConfig: AppConfig = {
+        defaultAudioFormat: 'mp3',
+        defaultVideoFormat: 'mkv',
+        videoFormats: ['mkv', 'mp4'],
+        audioFormats: ['mp3', 'aac'],
+        onlyAudio: false,
+        highestQuality: false
+    }
+    try {
+        await fs.promises.access(configFile);
+    } catch (_) {
+        let data: string = '';
+        for (const [key, value] of Object.entries(defaultConfig)) {
+            if ((key !== 'audioFormats') && (key !== 'videoFormats'))
+                data += `${key}: ${value}\n`
+        }
+        fs.promises.writeFile(configFile, data);
+        return defaultConfig;
+    }
+    const data = await fs.promises.readFile(configFile);
+    let config: AppConfig = { ...defaultConfig };
+    const lines: string[] = data.toString().split('\n');
+    for (let line of lines) {
+        const pair: string[] = line.split(':').map(param => param.replace(' ', ''));
+        if ((pair.length === 1) && (pair[0] === ''))
+            continue;
+        if (pair.length !== 2) {
+            sendStatusMessage('Bad config file!');
+            return defaultConfig;
+        }
+        if (defaultConfig.hasOwnProperty(pair[0])) {
+            if ((pair[0] === 'defaultAudioFormat') && (defaultConfig.audioFormats.includes(pair[1])))
+                config[pair[0]] = pair[1];
+            else if ((pair[0] === 'defaultVideoFormat') && (defaultConfig.videoFormats.includes(pair[1])))
+                config[pair[0]] = pair[1];
+            else if ((pair[0] === 'highestQuality') && ((pair[1] === 'true') || (pair[1] === 'false')))
+                config[pair[0]] = pair[1] === 'true' ? true : false;
+            else if ((pair[0] === 'onlyAudio') && ((pair[1] === 'true') || (pair[1] === 'false')))
+                config[pair[0]] = pair[1] === 'true' ? true : false;
+            else {
+                sendStatusMessage('Bad config file!');
+                return defaultConfig;
+            }
+        }
+    }
+    return config;
+}
+
+export default { getInfo, download, convert, cleanUp, loadConfig };

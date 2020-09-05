@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import ytdl from 'ytdl-core';
 import { IpcRenderer } from 'electron';
 //import { IpcRendererEvent } from 'electron/main';
@@ -9,6 +9,7 @@ import utils from './utils'
 import LinkForm from './components/LinkForm'
 import ProgressBar from './components/ProgressBar'
 import StatusLine from './components/StatusLine'
+import AppConfig from './types';
 
 const electron = window.require('electron');  // require electron like this in all the files. Don't Use import from 'electron' syntax for importing IpcRender from electron.
 
@@ -98,21 +99,31 @@ interface fileType {
   type: 'video' | 'audio'
 }
 
+const defaultConfig = {
+  defaultAudioFormat: 'mp3',
+  defaultVideoFormat: 'mkv',
+  videoFormats: ['mkv', 'mp4'],
+  audioFormats: ['mp3', 'aac'],
+  highestQuality: false,
+  onlyAudio: false
+}
+
 const App: React.FC = () => {
   const [link, setLink] = useState<string>('');
   const [audioFormat, setAudioFormat] = useState<number>(0);
   const [videoFormat, setVideoFormat] = useState<number>(0);
   const [gettingInfo, setGettingInfo] = useState<boolean>(false);
   const [fileType, setFileType] = useState<fileType | null>(null);
-
+  const [config, setConfig] = useState<AppConfig>(defaultConfig);
   const [ytbVideoInfo, setYtbVideoInfo] = useState<ytbVideoInfo | null>(null);
 
-  const config = {
-    "defaultAudioFormat": "mp3",
-    "defaultVideoFormat": "mkv",
-    "videoFormats": ['mkv', 'mp4'],
-    "audioFormats": ['mp3', 'aac']
-  }
+  useEffect(() => {
+    const getConfig = async (): Promise<void> => {
+      const newConfig: AppConfig = await ipcRenderer.invoke('getConfig');
+      setConfig(newConfig);
+    }
+    getConfig();
+  }, []);
 
   const handleSubmitInfo = async (event: React.SyntheticEvent): Promise<void> => {
     event.preventDefault();

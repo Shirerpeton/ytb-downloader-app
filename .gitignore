@@ -4,6 +4,8 @@ main/src/electron.js
 main/dist
 main/temp
 main/output
+main/ffmpeg
+main/config.cfg
 renderer/build
 renderer/dist
 

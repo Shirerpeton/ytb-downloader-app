@@ -3,6 +3,7 @@ import isDev from "electron-is-dev";;
 import path from 'path';
 import helpers from './helpers.js';
 import ytdl from 'ytdl-core';
+import AppConfig from './types/types.js';
 
 let mainWindow: BrowserWindow;
 
@@ -20,15 +21,19 @@ function createWindow() {
     );
     mainWindow.on("closed", () => (mainWindow.destroy()));
 
+    const sendStatusMessage = (status: string): void => {
+        mainWindow.webContents.send('status-line-message', status);
+    }
+
     ipcMain.handle('getInfo', async (_: IpcMainInvokeEvent, link: string): Promise<ytdl.videoInfo | null> => {
         return await helpers.getInfo(link);
+    });
+    ipcMain.handle('getConfig', async (_: IpcMainInvokeEvent): Promise<AppConfig> => {
+        return await helpers.loadConfig(sendStatusMessage);
     });
     ipcMain.handle('process', async (_: IpcMainInvokeEvent, info: ytdl.videoInfo, audioFormat: ytdl.videoFormat, videoFormat: ytdl.videoFormat, extension: string): Promise<void> => {
         const sendProgressMessage = (progress: number): void => {
             mainWindow.webContents.send('progress-bar-progress', progress);
-        }
-        const sendStatusMessage = (status: string): void => {
-            mainWindow.webContents.send('status-line-message', status);
         }
         mainWindow.webContents.send('progress-bar-toggle', true);
         const {audioFileName, videoFileName} = await helpers.download(info, audioFormat, videoFormat, sendProgressMessage, sendStatusMessage);
