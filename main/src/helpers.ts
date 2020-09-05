@@ -15,7 +15,6 @@ const getInfo = async (link: string): Promise<ytdl.videoInfo | null> => {
     // validating video url
     const valid: boolean = ytdl.validateURL(link);
     if (!valid) {
-        console.log('Invalid youtube URL');
         return null;
     }
 

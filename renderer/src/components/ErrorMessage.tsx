@@ -41,7 +41,7 @@ const ErrorMessage: React.FC<ErrorMessageProps> = (props: ErrorMessageProps) => 
         <React.Fragment>
             {messages.length !== 0 ?
                 <MessageContainer>
-                    <Message> {messages.map((msg, idx) => <li key={idx}>{msg}</li>)}</Message>
+                    <Message> {messages.map((msg: string, idx: number) => <li key={idx}>{msg}</li>)}</Message>
                 </MessageContainer>
                 : null}
         </React.Fragment>

@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import ytdl from 'ytdl-core';
 import { IpcRenderer } from 'electron';
-//import { IpcRendererEvent } from 'electron/main';
 import styled from 'styled-components';
 
 import utils from './utils'
@@ -11,7 +10,7 @@ import ProgressBar from './components/ProgressBar'
 import StatusLine from './components/StatusLine'
 import ErrorMessage from './components/ErrorMessage'
 
-import AppConfig from './types';
+import { YtbVideoInfo, AppConfig } from './types';
 
 const electron = window.require('electron');  // require electron like this in all the files. Don't Use import from 'electron' syntax for importing IpcRender from electron.
 
@@ -90,12 +89,6 @@ const Start = styled.button`
 
 const ipcRenderer: IpcRenderer = electron.ipcRenderer;
 
-interface ytbVideoInfo {
-  info: ytdl.videoInfo,
-  audioFormats: ytdl.videoFormat[],
-  videoFormats: ytdl.videoFormat[]
-}
-
 interface fileType {
   extension: string,
   type: 'video' | 'audio'
@@ -117,7 +110,7 @@ const App: React.FC = () => {
   const [gettingInfo, setGettingInfo] = useState<boolean>(false);
   const [fileType, setFileType] = useState<fileType | null>(null);
   const [config, setConfig] = useState<AppConfig>(defaultConfig);
-  const [ytbVideoInfo, setYtbVideoInfo] = useState<ytbVideoInfo | null>(null);
+  const [ytbVideoInfo, setYtbVideoInfo] = useState<YtbVideoInfo | null>(null);
 
   useEffect(() => {
     const detectFfmpeg = async (): Promise<boolean> => {
@@ -131,38 +124,17 @@ const App: React.FC = () => {
     detectFfmpeg();
   }, []);
 
-  const handleSubmitInfo = async (event: React.SyntheticEvent): Promise<void> => {
-    event.preventDefault();
-    setGettingInfo(true);
-    const infoOrNull: ytdl.videoInfo | null = await ipcRenderer.invoke('getInfo', link);
-    if (infoOrNull === null)
-      console.log('Invalid url for youtube video');
-    else {
-      setYtbVideoInfo({ info: infoOrNull, audioFormats: ytdl.filterFormats(infoOrNull.formats, 'audioonly'), videoFormats: ytdl.filterFormats(infoOrNull.formats, 'videoonly') });
-      if (config.highestQuality && config.onlyAudio)
-        selectTrack('audio')(1);
-      else {
-        if (config.highestQuality) {
-          selectTrack('audio')(1);
-          selectTrack('video')(1);
-        }
-      }
-
-    }
-    setGettingInfo(false);
-  }
-
   const getAudioFormatNames = (): string[] => {
     if (!ytbVideoInfo)
       return [];
-    const audioFormatsNames: string[] = ['0: None', ...ytbVideoInfo.audioFormats.map((format, ind) => `${String(ind + 1)}: audio bitrate: ${utils.numberOrUndefined(format.audioBitrate)}; audio quality: ${utils.audioQualityText(utils.stringOrUndefined(format.audioQuality))}; audioChannels: ${utils.numberOrUndefined(format.audioChannels)}; approximate size: ${Math.floor((Number(format.averageBitrate) / 1000))}mb`)];
+    const audioFormatsNames: string[] = ['0: None', ...ytbVideoInfo.audioFormats.map((format: ytdl.videoFormat, ind: number) => `${String(ind + 1)}: audio bitrate: ${utils.numberOrUndefined(format.audioBitrate)}; audio quality: ${utils.audioQualityText(utils.stringOrUndefined(format.audioQuality))}; audioChannels: ${utils.numberOrUndefined(format.audioChannels)}; approximate size: ${Math.floor((Number(format.averageBitrate) / 1000))}mb`)];
     return audioFormatsNames;
   }
 
   const getVideoFormatNames = (): string[] => {
     if (!ytbVideoInfo)
       return [];
-    const videoFormatsNames: string[] = ['0: None', ...ytbVideoInfo.videoFormats.map((format, ind) => `${String(ind + 1)}: video bitrate: ${format.bitrate}; width: ${utils.numberOrUndefined(format.width)}; height: ${utils.numberOrUndefined(format.height)}; fps: ${utils.numberOrUndefined(format.fps)}; quality: ${format.quality}; approximate size: ${Math.floor((Number(format.averageBitrate) / 1000))}mb`)];
+    const videoFormatsNames: string[] = ['0: None', ...ytbVideoInfo.videoFormats.map((format: ytdl.videoFormat, ind: number) => `${String(ind + 1)}: video bitrate: ${format.bitrate}; width: ${utils.numberOrUndefined(format.width)}; height: ${utils.numberOrUndefined(format.height)}; fps: ${utils.numberOrUndefined(format.fps)}; quality: ${format.quality}; approximate size: ${Math.floor((Number(format.averageBitrate) / 1000))}mb`)];
     return videoFormatsNames;
   }
 
@@ -197,8 +169,8 @@ const App: React.FC = () => {
   const startProcessing = async (): Promise<void> => {
     if (ytbVideoInfo === null)
       return;
-    const actualAudioFormat = (audioFormat === 0) ? null : ytbVideoInfo.audioFormats[audioFormat - 1];
-    const actualVideoFormat = (videoFormat === 0) ? null : ytbVideoInfo.videoFormats[videoFormat - 1];
+    const actualAudioFormat: ytdl.videoFormat = (audioFormat === 0) ? null : ytbVideoInfo.audioFormats[audioFormat - 1];
+    const actualVideoFormat: ytdl.videoFormat = (videoFormat === 0) ? null : ytbVideoInfo.videoFormats[videoFormat - 1];
     if (fileType !== null)
       await ipcRenderer.invoke('process', ytbVideoInfo.info, actualAudioFormat, actualVideoFormat, fileType.extension);
   }
@@ -207,7 +179,7 @@ const App: React.FC = () => {
     <AppContainer className="App">
       <ErrorMessage ipcRenderer={ipcRenderer}/>
       <Container>
-        <LinkForm handleSubmitInfo={handleSubmitInfo} link={link} setLink={setLink} gettingInfo={gettingInfo} />
+        <LinkForm link={link} setLink={setLink} gettingInfo={gettingInfo} setGettingInfo={setGettingInfo} setYtbVideoInfo={setYtbVideoInfo} ipcRenderer={ipcRenderer} config={config} selectTrack={selectTrack}/>
         <Br />
         <Section>
           <SectionTitle>Video Info</SectionTitle>
