@@ -8,6 +8,7 @@
   },
   "author": "Shirerpeton",
   "dependencies": {
+    "@ffmpeg-installer/ffmpeg": "^1.0.20",
     "electron": "^10.1.1",
     "fluent-ffmpeg": "^2.1.2",
     "ytdl-core": "^3.2.2"

@@ -7,6 +7,8 @@ import styled from 'styled-components';
 import utils from './utils'
 
 import LinkForm from './components/LinkForm'
+import ProgressBar from './components/ProgressBar'
+import StatusLine from './components/StatusLine'
 
 const electron = window.require('electron');  // require electron like this in all the files. Don't Use import from 'electron' syntax for importing IpcRender from electron.
 
@@ -83,10 +85,6 @@ const Start = styled.button`
   }
 `
 
-const Option = styled.option`
-  position: relative;
-`
-
 const ipcRenderer: IpcRenderer = electron.ipcRenderer;
 
 interface ytbVideoInfo {
@@ -95,12 +93,17 @@ interface ytbVideoInfo {
   videoFormats: ytdl.videoFormat[]
 }
 
+interface fileType {
+  extension: string,
+  type: 'video' | 'audio'
+}
+
 const App: React.FC = () => {
   const [link, setLink] = useState<string>('');
   const [audioFormat, setAudioFormat] = useState<number>(0);
   const [videoFormat, setVideoFormat] = useState<number>(0);
-  const [extension, setExtension] = useState<string>('');
   const [gettingInfo, setGettingInfo] = useState<boolean>(false);
+  const [fileType, setFileType] = useState<fileType | null>(null);
 
   const [ytbVideoInfo, setYtbVideoInfo] = useState<ytbVideoInfo | null>(null);
 
@@ -118,7 +121,7 @@ const App: React.FC = () => {
     if (infoOrNull === null)
       console.log('Invalid url for youtube video');
     else {
-      setYtbVideoInfo({info: infoOrNull, audioFormats: ytdl.filterFormats(infoOrNull.formats, 'audioonly'), videoFormats: ytdl.filterFormats(infoOrNull.formats, 'videoonly')})
+      setYtbVideoInfo({ info: infoOrNull, audioFormats: ytdl.filterFormats(infoOrNull.formats, 'audioonly'), videoFormats: ytdl.filterFormats(infoOrNull.formats, 'videoonly') })
     }
     setGettingInfo(false);
   }
@@ -140,19 +143,27 @@ const App: React.FC = () => {
   const selectTrack = (formatType: 'audio' | 'video'): ((event: React.ChangeEvent<HTMLSelectElement>) => void) => {
     const selectAudioTrack = (event: React.ChangeEvent<HTMLSelectElement>) => {
       const newAudioFormat: number = Number(event.target.value);
+      if (newAudioFormat === audioFormat) return;
       if (newAudioFormat === 0) {
         if (videoFormat === 0)
-          setExtension('');
+          setFileType(null);
+      } else {
+        if ((audioFormat === 0) && (videoFormat === 0))
+          setFileType({ type: 'audio', extension: config.defaultAudioFormat });
       }
       setAudioFormat(newAudioFormat);
     };
     const selectVideoTrack = (event: React.ChangeEvent<HTMLSelectElement>): void => {
       const newVideoFormat: number = Number(event.target.value);
+      if (newVideoFormat === videoFormat) return;
       if (newVideoFormat === 0) {
         if (audioFormat === 0)
-          setExtension('');
+          setFileType(null);
         else
-          setExtension(config.defaultAudioFormat);
+          setFileType({ type: 'audio', extension: config.defaultAudioFormat });
+      } else {
+        if (videoFormat === 0)
+          setFileType({ type: 'video', extension: config.defaultVideoFormat });
       }
       setVideoFormat(newVideoFormat);
     };
@@ -164,52 +175,56 @@ const App: React.FC = () => {
       return;
     const actualAudioFormat = (audioFormat === 0) ? null : ytbVideoInfo.audioFormats[audioFormat - 1];
     const actualVideoFormat = (videoFormat === 0) ? null : ytbVideoInfo.videoFormats[videoFormat - 1];
-    if (extension !== '')
-      await ipcRenderer.invoke('process', ytbVideoInfo.info, actualAudioFormat, actualVideoFormat, extension);
-    //await ipcRenderer.invoke('convert', actualAudioFormat, actualVideoFormat, audioFileName, videoFileName);
+    if (fileType !== null)
+      await ipcRenderer.invoke('process', ytbVideoInfo.info, actualAudioFormat, actualVideoFormat, fileType.extension);
   }
 
   return (
-        <AppContainer className="App">
-          <Container>
-            <LinkForm handleSubmitInfo={handleSubmitInfo} link={link} setLink={setLink} gettingInfo={gettingInfo} />
-            <Br />
-            <Section>
-              <SectionTitle>Video Info</SectionTitle>
-              <div><SmallLabel>Title:</SmallLabel> {ytbVideoInfo !== null ? ytbVideoInfo.info.videoDetails.title : ''}</div>
-              <div><SmallLabel>Author:</SmallLabel> {ytbVideoInfo !== null ? ytbVideoInfo.info.videoDetails.author.name : ''}</div>
-              <div><SmallLabel>Duration:</SmallLabel> {ytbVideoInfo !== null ? utils.lengthIntoText(ytbVideoInfo.info.videoDetails.lengthSeconds) : ''}</div>
-            </Section>
-            <Br />
-            <Section>
-              <SectionTitle>Track Selection</SectionTitle>
-              <SelectRow>
-                <SmallLabel>Audio Track:</SmallLabel>
-                <Selector onChange={selectTrack('audio')}>
-                  {ytbVideoInfo ? getAudioFormatNames().map((format: string, index: number) => <Option value={index} key={index}>{format}</Option>) : null}
-                </Selector>
-              </SelectRow>
-              <SelectRow>
-                <SmallLabel>Video Track:</SmallLabel>
-                <Selector onChange={selectTrack('video')}>
-                  {ytbVideoInfo ? getVideoFormatNames().map((format: string, index: number) => <Option value={index} key={index}>{format}</Option>) : null}
-                </Selector>
-              </SelectRow>
-            </Section>
-            <Br />
-            <Section>
-              <SectionTitle>Convert</SectionTitle>
-              <SelectRow>
-                <SmallLabel>Format: </SmallLabel>
-                <Selector value={extension} onChange={(event) => { setExtension(event.target.value) }}>
-                  {ytbVideoInfo ? (videoFormat !== 0 ? config.videoFormats.map((format: string, index: number) => <Option value={format} key={index}>{format}</Option>) :
-                    ((audioFormat !== 0) ? config.audioFormats.map((format: string, index: number) => <Option value={format} key={index}>{format}</Option>) : null)) : null}
-                </Selector>
-              </SelectRow>
-              <Start onClick={startProcessing}>Start</Start>
-            </Section>
-          </Container>
-        </AppContainer>
+    <AppContainer className="App">
+      <Container>
+        <LinkForm handleSubmitInfo={handleSubmitInfo} link={link} setLink={setLink} gettingInfo={gettingInfo} />
+        <Br />
+        <Section>
+          <SectionTitle>Video Info</SectionTitle>
+          <div><SmallLabel>Title:</SmallLabel> {ytbVideoInfo !== null ? ytbVideoInfo.info.videoDetails.title : ''}</div>
+          <div><SmallLabel>Author:</SmallLabel> {ytbVideoInfo !== null ? ytbVideoInfo.info.videoDetails.author.name : ''}</div>
+          <div><SmallLabel>Duration:</SmallLabel> {ytbVideoInfo !== null ? utils.lengthIntoText(ytbVideoInfo.info.videoDetails.lengthSeconds) : ''}</div>
+        </Section>
+        <Br />
+        <Section>
+          <SectionTitle>Track Selection</SectionTitle>
+          <SelectRow>
+            <SmallLabel>Audio Track:</SmallLabel>
+            <Selector onChange={selectTrack('audio')}>
+              {ytbVideoInfo ? getAudioFormatNames().map((format: string, index: number) => <option value={index} key={index}>{format}</option>) : null}
+            </Selector>
+          </SelectRow>
+          <SelectRow>
+            <SmallLabel>Video Track:</SmallLabel>
+            <Selector onChange={selectTrack('video')}>
+              {ytbVideoInfo ? getVideoFormatNames().map((format: string, index: number) => <option value={index} key={index}>{format}</option>) : null}
+            </Selector>
+          </SelectRow>
+        </Section>
+        <Br />
+        <Section>
+          <SectionTitle>Convert</SectionTitle>
+          <SelectRow>
+            <SmallLabel>Format: </SmallLabel>
+            <Selector value={fileType ? fileType.extension : ''} onChange={({ target: { value } }) => { setFileType(oldFileType => oldFileType ? { type: oldFileType.type, extension: value } : null) }}>
+              {ytbVideoInfo && fileType ?
+                (fileType.type === 'video' ?
+                  config.videoFormats.map((format: string, index: number) => <option value={format} key={index}>{format}</option>) :
+                  config.audioFormats.map((format: string, index: number) => <option value={format} key={index}>{format}</option>))
+                : null}
+            </Selector>
+          </SelectRow>
+          <ProgressBar ipcRenderer={ipcRenderer} />
+          <StatusLine ipcRenderer={ipcRenderer} />
+          <Start onClick={startProcessing}>Start</Start>
+        </Section>
+      </Container>
+    </AppContainer>
   );
 }
 

@@ -2,6 +2,8 @@
 
 main/src/electron.js
 main/dist
+main/temp
+main/output
 renderer/build
 renderer/dist
 

@@ -4,6 +4,8 @@ import fs from 'fs';
 import ffmpeg from 'fluent-ffmpeg';
 import ytdl from 'ytdl-core';
 
+const ffmpegPath = require('@ffmpeg-installer/ffmpeg');
+
 const outputDir = './output/';
 const tempDir = './temp/';
 
@@ -28,24 +30,39 @@ const downloadStream = (stream: stream.Readable, fileName: string): Promise<void
     })
 }
 
-const download = async (info: ytdl.videoInfo, audioFormat: ytdl.videoFormat | null, videoFormat: ytdl.videoFormat | null): Promise<void> => {
+interface fileNames {
+    audioFileName: string,
+    videoFileName: string
+}
+
+interface downloadFunc {
+    (
+        info: ytdl.videoInfo,
+        audioFormat: ytdl.videoFormat | null,
+        videoFormat: ytdl.videoFormat | null,
+        sendProgressMessage: (progress: number) => void,
+        sendStatusMessage: (status: string) => void
+    ): Promise<fileNames>
+}
+
+const download: downloadFunc = async (info, audioFormat, videoFormat, sendProgressMessage, sendStatusMessage) => {
     const title: string = (info.videoDetails.title).replace(/[\<\>\:\"\/\\\/\|\?\*]/g, '_');
     let audioFileName: string = '';
+
+    await fs.promises.mkdir(tempDir, { recursive: true });
 
     //audio downlaod
     if (audioFormat) {
         audioFileName = 'audio_' + title + '.' + audioFormat.container;
-        console.log('Audio file name: ');
-        console.log(audioFileName);
         const audioStream = ytdl.downloadFromInfo(info, { format: audioFormat });
         audioStream.on('progress', (_, segmentsDownloaded: number, segments: number) => {
-            //progressBar.redrawProgressBar((segmentsDownloaded / segments) * 100, 'Audio download');
-            console.log('Current progress: ' + (segmentsDownloaded / segments) * 100 + '%');
+            const progress: number = Math.floor((segmentsDownloaded / segments) * 100);
+            sendProgressMessage(progress);
         })
-        console.log();
-        //progressBar.drawProgressBar(0, 'Audio download');
+        sendStatusMessage('Downloading audio');
+        sendProgressMessage(0);
         await downloadStream(audioStream, tempDir + audioFileName);
-        console.log('Audio downloaded');
+        sendProgressMessage(100);
     }
 
     //video download
@@ -54,30 +71,44 @@ const download = async (info: ytdl.videoInfo, audioFormat: ytdl.videoFormat | nu
         videoFileName = 'video_' + title + '.' + videoFormat.container;
         const videoStream = ytdl.downloadFromInfo(info, { format: videoFormat });
         videoStream.on('progress', (_, segmentsDownloaded: number, segments: number) => {
-            //progressBar.redrawProgressBar((segmentsDownloaded / segments) * 100, 'Video download');
-            console.log('Current progress: ' + (segmentsDownloaded / segments) * 100 + '%');
+            const progress: number = Math.floor((segmentsDownloaded / segments) * 100);
+            sendProgressMessage(progress);
         });
-        console.log();
-        //progressBar.drawProgressBar(0, 'Video download');
+        sendStatusMessage('Downloading video');
+        sendProgressMessage(0);
         await downloadStream(videoStream, tempDir + videoFileName);
-        console.log('Video downloaded');
+        sendProgressMessage(100);
     }
-    //return { audioFileName, videoFileName };
+    return { audioFileName, videoFileName };
 }
 
 const convertFiles = (query: ffmpeg.FfmpegCommand): Promise<void> => {
     return new Promise(resolve => {
         query.on('end', () => {
-            //progressBar.redrawProgressBar(100, 'Converting file');
             resolve();
         });
         query.run();
     })
 }
 
-const convert = async (info: ytdl.videoInfo, audioFormat: ytdl.videoFormat | null, videoFormat: ytdl.videoFormat | null, audioFileName: string, videoFileName: string, selectedFormat: string) => {
+interface ConvertFunc {
+    (
+        info: ytdl.videoInfo,
+        audioFormat: ytdl.videoFormat | null,
+        videoFormat: ytdl.videoFormat | null, audioFileName: string,
+        videoFileName: string,
+        selectedFormat: string,
+        sendProgressMessage: (progress: number) => void
+    ): Promise<void>
+}
+
+const convert: ConvertFunc = async (info, audioFormat, videoFormat, audioFileName, videoFileName, selectedFormat, sendProgressMessage) => {
     const title: string = (info.videoDetails.title).replace(/[\<\>\:\"\/\\\/\|\?\*]/g, '_');
-    
+    const ffmpegInstaller = require('@ffmpeg-installer/ffmpeg');
+    ffmpeg.setFfmpegPath(ffmpegInstaller.path);
+
+    await fs.promises.mkdir(outputDir, { recursive: true });
+
     if (videoFormat) {
         //if video is present
         const query = ffmpeg().input(tempDir + videoFileName).videoCodec('libx264');
@@ -102,16 +133,13 @@ const convert = async (info: ytdl.videoInfo, audioFormat: ytdl.videoFormat | nul
             console.log('An error occurred: ' + err.message)
         });
         query.on('start', () => {
-            console.log();
-            console.log('Processing started!');
-            //progressBar.drawProgressBar(0, 'Converting file');
+            sendProgressMessage(0);
         });
         query.on('progress', progress => {
-            //progressBar.redrawProgressBar(progress.percent, 'Converting file');
-            console.log('Current progress: ' + progress.percent + '%');
+            sendProgressMessage(Math.floor(progress.percent));
         });
         await convertFiles(query);
-        console.log('Processing complete');
+        sendProgressMessage(100);
     } else if (audioFormat) {
         //audio only
         const query = ffmpeg().input(tempDir + audioFileName).noVideo();
@@ -134,18 +162,21 @@ const convert = async (info: ytdl.videoInfo, audioFormat: ytdl.videoFormat | nul
             console.log('An error occurred: ' + err.message)
         });
         query.on('start', () => {
-            console.log();
-            console.log('Processing started!');
-            //progressBar.drawProgressBar(0, 'Converting file');
+            sendProgressMessage(0);
         });
         query.on('progress', progress => {
-            console.log('Current progress: ' + progress.percent + '%');
-            //progressBar.redrawProgressBar(progress.percent, 'Converting file');
+            sendProgressMessage(Math.floor(progress.percent));
         });
         await convertFiles(query);
-        console.log();
-        console.log('Processing complete');
+        sendProgressMessage(100);
     }
 }
 
-export default { getInfo, download, convert };
+const cleanUp = async (audioFileName: string, videoFileName: string): Promise<void> => {
+    if (audioFileName !== '')
+        await fs.promises.unlink(tempDir + audioFileName);
+    if (videoFileName !== '')
+        await fs.promises.unlink(tempDir + videoFileName);
+}
+
+export default { getInfo, download, convert, cleanUp };
