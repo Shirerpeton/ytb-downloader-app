@@ -132,7 +132,16 @@ const App: React.FC = () => {
     if (infoOrNull === null)
       console.log('Invalid url for youtube video');
     else {
-      setYtbVideoInfo({ info: infoOrNull, audioFormats: ytdl.filterFormats(infoOrNull.formats, 'audioonly'), videoFormats: ytdl.filterFormats(infoOrNull.formats, 'videoonly') })
+      setYtbVideoInfo({ info: infoOrNull, audioFormats: ytdl.filterFormats(infoOrNull.formats, 'audioonly'), videoFormats: ytdl.filterFormats(infoOrNull.formats, 'videoonly') });
+      if (config.highestQuality && config.onlyAudio)
+        selectTrack('audio')(1);
+      else {
+        if (config.highestQuality) {
+          selectTrack('audio')(1);
+          selectTrack('video')(1);
+        }
+      }
+
     }
     setGettingInfo(false);
   }
@@ -151,9 +160,8 @@ const App: React.FC = () => {
     return videoFormatsNames;
   }
 
-  const selectTrack = (formatType: 'audio' | 'video'): ((event: React.ChangeEvent<HTMLSelectElement>) => void) => {
-    const selectAudioTrack = (event: React.ChangeEvent<HTMLSelectElement>) => {
-      const newAudioFormat: number = Number(event.target.value);
+  const selectTrack = (formatType: 'audio' | 'video'): ((newFormat: number) => void) => {
+    const selectAudioTrack = (newAudioFormat: number) => {
       if (newAudioFormat === audioFormat) return;
       if (newAudioFormat === 0) {
         if (videoFormat === 0)
@@ -164,8 +172,7 @@ const App: React.FC = () => {
       }
       setAudioFormat(newAudioFormat);
     };
-    const selectVideoTrack = (event: React.ChangeEvent<HTMLSelectElement>): void => {
-      const newVideoFormat: number = Number(event.target.value);
+    const selectVideoTrack = (newVideoFormat: number): void => {
       if (newVideoFormat === videoFormat) return;
       if (newVideoFormat === 0) {
         if (audioFormat === 0)
@@ -206,13 +213,13 @@ const App: React.FC = () => {
           <SectionTitle>Track Selection</SectionTitle>
           <SelectRow>
             <SmallLabel>Audio Track:</SmallLabel>
-            <Selector onChange={selectTrack('audio')}>
+            <Selector value={audioFormat} onChange={event => selectTrack('audio')(Number(event.target.value))}>
               {ytbVideoInfo ? getAudioFormatNames().map((format: string, index: number) => <option value={index} key={index}>{format}</option>) : null}
             </Selector>
           </SelectRow>
           <SelectRow>
             <SmallLabel>Video Track:</SmallLabel>
-            <Selector onChange={selectTrack('video')}>
+            <Selector value={videoFormat} onChange={event => selectTrack('video')(Number(event.target.value))}>
               {ytbVideoInfo ? getVideoFormatNames().map((format: string, index: number) => <option value={index} key={index}>{format}</option>) : null}
             </Selector>
           </SelectRow>
