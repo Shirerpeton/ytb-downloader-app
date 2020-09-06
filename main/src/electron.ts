@@ -16,6 +16,7 @@ function createWindow() {
         webPreferences: {
             nodeIntegration: true,
         },
+        title: 'Ytb Downloader',
         show: false,
         backgroundColor: '#191a1d'
     });

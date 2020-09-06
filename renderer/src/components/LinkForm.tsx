@@ -31,6 +31,10 @@ const LinkInput = styled.input<LinkInputProps>`
   }
 `
 
+const Error = styled.span`
+    color: ${props => props.theme.colors.error};
+`
+
 const SubmitButton = styled.input`
   background-color: ${props => props.theme.colors.backgroundSecondary};
   border: 1px solid ${props => props.theme.colors.border};
@@ -97,7 +101,7 @@ const LinkFormComponent: React.FC<LinkFormProps> = (props: LinkFormProps) => {
     <LinkForm onSubmit={handleSubmitInfo}>
       <LinkInputContainer>
         <LinkInput type='text' id='link' value={props.link} onChange={(event) => { if (!props.gettingInfo) setError(''); props.setLink(event.target.value); }} gettingInfo={props.gettingInfo} error={error} required placeholder='Youtube link' />
-        {error !== '' ? error : null}
+        {error !== '' ? <Error>{error}</Error> : null}
       </LinkInputContainer>
       <SubmitButton type='submit' value='Get info' />
     </LinkForm>
