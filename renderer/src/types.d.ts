@@ -1,3 +1,5 @@
+import { videoInfo } from 'ytdl-core'
+
 export interface AppConfig {
     [string]: any,
     audioFormats: string[],
@@ -23,4 +25,11 @@ export interface Messages {
 export interface FileType {
     extension: string,
     type: 'video' | 'audio'
-  }
+}
+
+export interface Video {
+    info: videoInfo,
+    audioFormat: number,
+    videoFormat: number,
+    extension: string
+}

@@ -64,13 +64,12 @@ const LinkInputContainer = styled.div`
 interface LinkFormProps {
   readonly link: string,
   readonly setLink: React.Dispatch<React.SetStateAction<string>>,
-  readonly gettingInfo: boolean,
-  readonly setGettingInfo: React.Dispatch<React.SetStateAction<boolean>>,
   readonly setYtbVideoInfo: React.Dispatch<React.SetStateAction<YtbVideoInfo | null>>,
   readonly ipcRenderer: IpcRenderer,
   readonly config: AppConfig,
   readonly selectTrack: (formatType: 'audio' | 'video') => (newFormat: number) => void,
-  readonly isProcessing: boolean
+  readonly isBlocked: boolean,
+  readonly setIsBlocked: React.Dispatch<React.SetStateAction<boolean>>,
 }
 
 const LinkFormComponent: React.FC<LinkFormProps> = (props: LinkFormProps) => {
@@ -79,7 +78,7 @@ const LinkFormComponent: React.FC<LinkFormProps> = (props: LinkFormProps) => {
 
   const handleSubmitInfo = async (event: React.SyntheticEvent): Promise<void> => {
     event.preventDefault();
-    props.setGettingInfo(true);
+    props.setIsBlocked(true);
     const infoOrNull: ytdl.videoInfo | null = await props.ipcRenderer.invoke('getInfo', props.link);
     if (infoOrNull === null)
       setError('Invalid url for youtube video');
@@ -95,16 +94,16 @@ const LinkFormComponent: React.FC<LinkFormProps> = (props: LinkFormProps) => {
       }
 
     }
-    props.setGettingInfo(false);
+    props.setIsBlocked(false);
   }
 
   return (
     <LinkForm onSubmit={handleSubmitInfo}>
       <LinkInputContainer>
-        <LinkInput type='text' id='link' value={props.link} onChange={(event) => { if (!props.gettingInfo) setError(''); props.setLink(event.target.value); }} gettingInfo={props.gettingInfo} error={error} required placeholder='Youtube link' />
+        <LinkInput type='text' id='link' value={props.link} onChange={(event) => { if (!props.isBlocked) setError(''); props.setLink(event.target.value); }} gettingInfo={props.isBlocked} error={error} required placeholder='Youtube link' />
         {error !== '' ? <Error>{error}</Error> : null}
       </LinkInputContainer>
-      <SubmitButton type='submit' value='Get info' disabled={props.isProcessing}/>
+      <SubmitButton type='submit' value='Get info' disabled={props.isBlocked}/>
     </LinkForm>
   );
 }

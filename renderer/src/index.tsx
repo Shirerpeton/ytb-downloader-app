@@ -18,7 +18,7 @@ const GlobalStyle = createGlobalStyle`
     font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen,
       Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
     background-color: ${props => props.theme.colors.background};
-    font-size: 1.1rem;
+    //font-size: 1.1rem;
   }
 
   a {

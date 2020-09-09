@@ -12,7 +12,6 @@ const Bar = styled.div<BarProps>`
     display: flex;
     justify-content: center;
     align-items: center;
-    //margin: 1rem 0;
     border: 1px solid ${props => props.isActive ? props.theme.colors.borderSecondary : props.theme.colors.border};
     color: ${props => props.isActive ? props.theme.colors.primary : props.theme.colors.secondary};
     position: relative;
@@ -20,6 +19,7 @@ const Bar = styled.div<BarProps>`
     border-radius: 0.25rem;
     padding: 1rem;
     z-index: 1;
+    margin: 0;
     &:before {
         content: '';
         position: absolute;
@@ -34,7 +34,8 @@ const Bar = styled.div<BarProps>`
 `
 
 interface ProgressBarProps {
-    ipcRenderer: IpcRenderer
+    ipcRenderer: IpcRenderer,
+    index?: number
 }
 
 const ProgressBar: React.FC<ProgressBarProps> = (props) => {
@@ -42,18 +43,22 @@ const ProgressBar: React.FC<ProgressBarProps> = (props) => {
     const [progress, setProgress] = useState<number>(0);
 
     useEffect(() => {
-        props.ipcRenderer.on('progress-bar-progress', (_: IpcRendererEvent, data: number) => {
+        const progressChannel: string = props.index === undefined? 'progress-bar-progress' : 'progress-bar-progress-' + String(props.index);
+        const toggleChannel: string = props.index === undefined? 'progress-bar-toggle' : 'progress-bar-toggle-' + String(props.index);
+        if (props.index === undefined)
+        
+        props.ipcRenderer.on(progressChannel, (_: IpcRendererEvent, data: number) => {
             setProgress(data);
         });
-        props.ipcRenderer.on('progress-bar-toggle', (_: IpcRendererEvent, data: boolean) => {
+        props.ipcRenderer.on(toggleChannel, (_: IpcRendererEvent, data: boolean) => {
             setIsActive(data);
         });
 
         return () => {
-            props.ipcRenderer.removeAllListeners('progress-bar-progress');
-            props.ipcRenderer.removeAllListeners('progress-bar-toggle');
+            props.ipcRenderer.removeAllListeners(progressChannel);
+            props.ipcRenderer.removeAllListeners(toggleChannel);
         };
-    }, [props.ipcRenderer]);
+    }, [props.ipcRenderer, props.index]);
 
     return (
         <Bar width={progress} isActive={isActive}>{progress + '%'}</Bar>

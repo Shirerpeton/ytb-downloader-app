@@ -71,7 +71,7 @@ type Mode = 'single' | 'batch';
 const App: React.FC = () => {
   const [mode, setMode] = useState<Mode>('single');
   const [config, setConfig] = useState<AppConfig>(defaultConfig);
-  const [isProcessing, setIsProcessing] = useState<boolean>(false);
+  const [isBlocked, setIsBlocked] = useState<boolean>(false);
 
   useEffect(() => {
     const detectFfmpeg = async (): Promise<boolean> => {
@@ -91,12 +91,12 @@ const App: React.FC = () => {
       <ControlsContainer>
         <Controls>
           <ModeButtons>
-            <ModeButton onClick={() => { if (!isProcessing) setMode('single') }} selected={mode === 'single'} disabled={isProcessing}>Single Video Mode</ModeButton>
-            <ModeButton onClick={() => { if (!isProcessing) setMode('batch') }} selected={mode === 'batch'} disabled={isProcessing}>Batch Mode</ModeButton>
+            <ModeButton onClick={() => { if (!isBlocked) setMode('single') }} selected={mode === 'single'} disabled={isBlocked}>Single Video Mode</ModeButton>
+            <ModeButton onClick={() => { if (!isBlocked) setMode('batch') }} selected={mode === 'batch'} disabled={isBlocked}>Batch Mode</ModeButton>
           </ModeButtons>
         </Controls>
         <ModeContainer>
-          {mode === 'single' ? <SingleVideoMode config={config} ipcRenderer={ipcRenderer} isProcessing={isProcessing} setIsProcessing={setIsProcessing}/> : <BatchMode config={config} ipcRenderer={ipcRenderer} />}
+          {mode === 'single' ? <SingleVideoMode config={config} ipcRenderer={ipcRenderer} isBlocked={isBlocked} setIsBlocked={setIsBlocked}/> : <BatchMode config={config} ipcRenderer={ipcRenderer} isBlocked={isBlocked} setIsBlocked={setIsBlocked}/>}
         </ModeContainer>
       </ControlsContainer>
     </AppContainer>
