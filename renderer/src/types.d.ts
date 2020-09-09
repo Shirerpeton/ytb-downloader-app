@@ -29,6 +29,8 @@ export interface FileType {
 
 export interface Video {
     info: videoInfo,
+    audioFormats: ytdl.videoFormat[],
+    videoFormats: ytdl.videoFormat[],
     audioFormat: number,
     videoFormat: number,
     extension: string

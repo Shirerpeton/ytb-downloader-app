@@ -67,6 +67,9 @@ const Start = styled.button`
     border: 1px solid ${props => props.theme.colors.borderSecondary};
   }
 `
+const Space = styled.div`
+    height: 1rem;
+`
 
 interface SingleVideoModeProps {
     config: AppConfig,
@@ -162,7 +165,9 @@ const SingleVideoMode: React.FC<SingleVideoModeProps> = (props) => {
                     </Selector>
                 </SelectRow>
                 <ProgressBar ipcRenderer={props.ipcRenderer} />
+                <Space />
                 <StatusLine ipcRenderer={props.ipcRenderer} />
+                <Space />
                 <Start onClick={startProcessing} disabled={props.isBlocked}>Start</Start>
             </Section>
         </React.Fragment>

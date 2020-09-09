@@ -35,19 +35,17 @@ function createWindow() {
 
     mainWindow.on("closed", () => (mainWindow.destroy()));
     
-    const sendStatusMessage = (status: string): void => {
-        mainWindow.webContents.send('status-line-message', status);
-    }
-
-    const sendProgressMessage = (progress: number): void => {
-        mainWindow.webContents.send('progress-bar-progress', progress);
+    const sendMessage = (channel: string, index?: number, ): (<T>(message: T) => void) => {
+        const actualChannel = index === undefined? channel : channel + '-' + String(index);
+        return (<T>(message: T): void => {
+            mainWindow.webContents.send(actualChannel, message);
+        });
     }
 
     const sendErrorMessage = (error: string): void => {
         mainWindow.webContents.send('error-message', error);
     }
-
-    const msg: Messages = {sendStatusMessage, sendProgressMessage, sendErrorMessage}
+    const msg: Messages = {sendStatusMessage: sendMessage('status-line-message'), sendProgressMessage: sendMessage('progress-bar-progress'), sendErrorMessage, sendProgressToggle: sendMessage('progress-bar-toggle')};
 
     ipcMain.handle('getInfo', async (_: IpcMainInvokeEvent, link: string): Promise<ytdl.videoInfo | null> => {
         return await helpers.getInfo(link);
@@ -61,15 +59,16 @@ function createWindow() {
         return await helpers.loadConfig(msg);
     });
 
-    ipcMain.handle('process', async (_: IpcMainInvokeEvent, info: ytdl.videoInfo, audioFormat: ytdl.videoFormat, videoFormat: ytdl.videoFormat, extension: string): Promise<void> => {
-        mainWindow.webContents.send('progress-bar-toggle', true);
-        const {audioFileName, videoFileName} = await helpers.download(info, audioFormat, videoFormat, msg);
-        sendStatusMessage('Converting files');
-        await helpers.convert(info, audioFormat, videoFormat, audioFileName, videoFileName, extension, msg);
-        sendStatusMessage('Cleaning up');
+    ipcMain.handle('process', async (_: IpcMainInvokeEvent, info: ytdl.videoInfo, audioFormat: ytdl.videoFormat, videoFormat: ytdl.videoFormat, extension: string, index?: number): Promise<void> => {
+        const actualMsg: Messages = {sendStatusMessage: sendMessage('status-line-message', index), sendProgressMessage: sendMessage('progress-bar-progress', index), sendProgressToggle: sendMessage('progress-bar-toggle', index), sendErrorMessage};
+        actualMsg.sendProgressToggle(true);
+        const {audioFileName, videoFileName} = await helpers.download(info, audioFormat, videoFormat, actualMsg);
+        actualMsg.sendStatusMessage('Converting files');
+        await helpers.convert(info, audioFormat, videoFormat, audioFileName, videoFileName, extension, actualMsg);
+        actualMsg.sendStatusMessage('Cleaning up');
         await helpers.cleanUp(audioFileName, videoFileName);
-        sendStatusMessage('Done');
-        mainWindow.webContents.send('progress-bar-toggle', false);
+        actualMsg.sendStatusMessage('Done');
+        actualMsg.sendProgressToggle(false);
     });
 }
 

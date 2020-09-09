@@ -1,5 +1,5 @@
 import { YtbVideoInfo } from "./types";
-import { videoFormat } from 'ytdl-core'
+import ytdl, { videoFormat } from 'ytdl-core'
 
 const audioQualityText = (quality: string): string => {
   switch (quality) {
@@ -47,4 +47,12 @@ const getVideoFormatNames = (ytbVideoInfo: YtbVideoInfo): string[] => {
   return videoFormatsNames;
 }
 
-export default { lengthIntoText, getAudioFormatNames, getVideoFormatNames };
+const getAudioFormats = (formats: ytdl.videoFormat[]) => {
+  return ytdl.filterFormats(formats, 'audioonly');
+}
+
+const getVideoFormats = (formats: ytdl.videoFormat[]) => {
+  return ytdl.filterFormats(formats, 'videoonly');
+}
+
+export default { lengthIntoText, getAudioFormatNames, getVideoFormatNames, getAudioFormats, getVideoFormats};

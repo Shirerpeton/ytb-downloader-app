@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import styled from 'styled-components'
 import { AppConfig, Video } from '../types';
 import { IpcRenderer } from 'electron';
+import ytdl from 'ytdl-core';
 
 import AddLinkForm from './AddLinkForm'
 import StatusLine from './StatusLine'
@@ -11,7 +12,7 @@ const VideoList = styled.div`
     //overflow: scroll;
     border-radius: 0.25rem;
     border: 1px solid ${props => props.theme.colors.border};
-    height: 30rem;
+    height:  70vh;
     margin-bottom: 1rem;
     display: flex;
     flex-direction: column;
@@ -23,7 +24,10 @@ const Br = styled.div`
 
 const CenterDiv = styled.div`
     text-align: center;
-    padding: 0.5rem 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem;
 `
 
 const Row = styled.div`
@@ -45,7 +49,6 @@ const Status = styled(CenterDiv)`
 const Progress = styled(CenterDiv)`
     width: 40%;
     max-width: 40%;
-    padding: 0.5rem;
 `
 const Start = styled.button`
   display: inline-block;
@@ -73,7 +76,19 @@ const BatchMode: React.FC<BatchModeProps> = (props) => {
     const [videos, setVideos] = useState<Video[]>([]);
     const [link, setLink] = useState<string>('');
 
-    console.log(videos);
+    const startProcessing = async (): Promise<void> => {
+        if (videos.length === 0)
+            return;
+        props.setIsBlocked(true);
+        Promise.all(videos.map((video, index): Promise<void> => {
+            const actualAudioFormat: ytdl.videoFormat = (video.audioFormat === 0) ? null : video.audioFormats[video.audioFormat - 1];
+            const actualVideoFormat: ytdl.videoFormat = (video.videoFormat === 0) ? null : video.videoFormats[video.videoFormat - 1];
+            return props.ipcRenderer.invoke('process', video.info, actualAudioFormat, actualVideoFormat, video.extension, index);
+        }));
+        props.setIsBlocked(false);
+
+    }
+
     return (
         <React.Fragment>
             <VideoList>
@@ -92,9 +107,9 @@ const BatchMode: React.FC<BatchModeProps> = (props) => {
                     </Progress>
                 </Row>))}
             </VideoList>
-            <AddLinkForm ipcRenderer={props.ipcRenderer} config={props.config} link={link} setLink={setLink} isBlocked={props.isBlocked} setIsBlocked={props.setIsBlocked} setVideos={setVideos} videos={videos}/>
+            <AddLinkForm ipcRenderer={props.ipcRenderer} config={props.config} link={link} setLink={setLink} isBlocked={props.isBlocked} setIsBlocked={props.setIsBlocked} setVideos={setVideos} videos={videos} />
             <Br />
-            <Start onClick={() => { }} disabled={props.isBlocked}>Start</Start>
+            <Start onClick={startProcessing} disabled={props.isBlocked}>Start</Start>
         </React.Fragment>
     );
 }

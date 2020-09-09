@@ -2,7 +2,9 @@ import React, { useState } from 'react';
 import styled from 'styled-components';
 import ytdl from 'ytdl-core'
 import { IpcRenderer } from 'electron';
+
 import { YtbVideoInfo, AppConfig } from '../types';
+import utils from '../utils';
 
 interface LinkInputProps {
   readonly gettingInfo: boolean,
@@ -83,7 +85,7 @@ const LinkFormComponent: React.FC<LinkFormProps> = (props: LinkFormProps) => {
     if (infoOrNull === null)
       setError('Invalid url for youtube video');
     else {
-      props.setYtbVideoInfo({ info: infoOrNull, audioFormats: ytdl.filterFormats(infoOrNull.formats, 'audioonly'), videoFormats: ytdl.filterFormats(infoOrNull.formats, 'videoonly') });
+      props.setYtbVideoInfo({ info: infoOrNull, audioFormats: utils.getAudioFormats(infoOrNull.formats), videoFormats: utils.getVideoFormats(infoOrNull.formats) });
       if (props.config.highestQuality && props.config.onlyAudio)
         props.selectTrack('audio')(1);
       else {

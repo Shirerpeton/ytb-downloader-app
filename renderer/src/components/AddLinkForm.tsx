@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import ytdl from 'ytdl-core'
 import { IpcRenderer } from 'electron';
 import { AppConfig, Video } from '../types';
+import utils from '../utils';
 
 interface LinkInputProps {
     readonly gettingInfo: boolean,
@@ -83,8 +84,8 @@ const AddLinkForm: React.FC<AddLinkFormProps> = (props) => {
         if (infoOrNull === null)
             setError('Invalid url for youtube video');
         else {
-            const videoIds = props.videos.map(video => video.info.video_id);
-            if (videoIds.includes(infoOrNull.video_id)) {
+            const videoIds: string[] = props.videos.map(video => video.info.videoDetails.videoId);
+            if (videoIds.includes(infoOrNull.videoDetails.videoId)) {
                 setError('Video is already on the list');
                 props.setIsBlocked(false);
                 return;
@@ -104,8 +105,10 @@ const AddLinkForm: React.FC<AddLinkFormProps> = (props) => {
                 extension = props.config.defaultVideoFormat;
             else if (audioFormat !== 0)
                 extension = props.config.defaultAudioFormat;
+            const audioFormats: ytdl.videoFormat[] = utils.getAudioFormats(infoOrNull.formats);
+            const videoFormats: ytdl.videoFormat[] = utils.getVideoFormats(infoOrNull.formats);
             if (extension !== '')
-                props.setVideos(oldVideos => [...oldVideos, {info: infoOrNull, audioFormat: audioFormat, videoFormat: videoFormat, extension: ''}]);
+                props.setVideos(oldVideos => [...oldVideos, {info: infoOrNull, audioFormat, videoFormat, extension, audioFormats, videoFormats}]);
         }
         props.setIsBlocked(false);
     }

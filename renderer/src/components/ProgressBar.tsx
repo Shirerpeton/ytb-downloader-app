@@ -9,6 +9,7 @@ interface BarProps {
 }
 
 const Bar = styled.div<BarProps>`
+    width: 100%;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -45,8 +46,6 @@ const ProgressBar: React.FC<ProgressBarProps> = (props) => {
     useEffect(() => {
         const progressChannel: string = props.index === undefined? 'progress-bar-progress' : 'progress-bar-progress-' + String(props.index);
         const toggleChannel: string = props.index === undefined? 'progress-bar-toggle' : 'progress-bar-toggle-' + String(props.index);
-        if (props.index === undefined)
-        
         props.ipcRenderer.on(progressChannel, (_: IpcRendererEvent, data: number) => {
             setProgress(data);
         });
