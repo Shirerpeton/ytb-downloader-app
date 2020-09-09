@@ -68,7 +68,8 @@ interface AddLinkFormProps {
     readonly config: AppConfig,
     readonly isBlocked: boolean,
     readonly setIsBlocked: React.Dispatch<React.SetStateAction<boolean>>,
-    readonly setVideos: React.Dispatch<React.SetStateAction<Video[]>>
+    readonly setVideos: React.Dispatch<React.SetStateAction<Video[]>>,
+    readonly videos: Video[]
 }
 
 const AddLinkForm: React.FC<AddLinkFormProps> = (props) => {
@@ -82,6 +83,12 @@ const AddLinkForm: React.FC<AddLinkFormProps> = (props) => {
         if (infoOrNull === null)
             setError('Invalid url for youtube video');
         else {
+            const videoIds = props.videos.map(video => video.info.video_id);
+            if (videoIds.includes(infoOrNull.video_id)) {
+                setError('Video is already on the list');
+                props.setIsBlocked(false);
+                return;
+            }
             let audioFormat = 0, videoFormat = 0;
             if (props.config.highestQuality && props.config.onlyAudio) {
                 audioFormat = 1;

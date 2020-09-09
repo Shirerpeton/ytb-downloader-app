@@ -92,7 +92,7 @@ const BatchMode: React.FC<BatchModeProps> = (props) => {
                     </Progress>
                 </Row>))}
             </VideoList>
-            <AddLinkForm ipcRenderer={props.ipcRenderer} config={props.config} link={link} setLink={setLink} isBlocked={props.isBlocked} setIsBlocked={props.setIsBlocked} setVideos={setVideos} />
+            <AddLinkForm ipcRenderer={props.ipcRenderer} config={props.config} link={link} setLink={setLink} isBlocked={props.isBlocked} setIsBlocked={props.setIsBlocked} setVideos={setVideos} videos={videos}/>
             <Br />
             <Start onClick={() => { }} disabled={props.isBlocked}>Start</Start>
         </React.Fragment>
