@@ -69,7 +69,8 @@ interface LinkFormProps {
   readonly setYtbVideoInfo: React.Dispatch<React.SetStateAction<YtbVideoInfo | null>>,
   readonly ipcRenderer: IpcRenderer,
   readonly config: AppConfig,
-  selectTrack: (formatType: 'audio' | 'video') => (newFormat: number) => void
+  readonly selectTrack: (formatType: 'audio' | 'video') => (newFormat: number) => void,
+  readonly isProcessing: boolean
 }
 
 const LinkFormComponent: React.FC<LinkFormProps> = (props: LinkFormProps) => {
@@ -103,7 +104,7 @@ const LinkFormComponent: React.FC<LinkFormProps> = (props: LinkFormProps) => {
         <LinkInput type='text' id='link' value={props.link} onChange={(event) => { if (!props.gettingInfo) setError(''); props.setLink(event.target.value); }} gettingInfo={props.gettingInfo} error={error} required placeholder='Youtube link' />
         {error !== '' ? <Error>{error}</Error> : null}
       </LinkInputContainer>
-      <SubmitButton type='submit' value='Get info' />
+      <SubmitButton type='submit' value='Get info' disabled={props.isProcessing}/>
     </LinkForm>
   );
 }

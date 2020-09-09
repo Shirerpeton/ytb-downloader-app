@@ -19,3 +19,8 @@ export interface Messages {
     sendStatusMessage: (status: string) => void,
     sendErrorMessage: (error: string) => void
 }
+
+export interface FileType {
+    extension: string,
+    type: 'video' | 'audio'
+  }

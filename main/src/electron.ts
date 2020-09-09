@@ -21,7 +21,7 @@ function createWindow() {
         backgroundColor: '#191a1d'
     });
     
-    mainWindow.removeMenu();
+    //mainWindow.removeMenu();
 
     mainWindow.webContents.on('did-finish-load', () => {
         mainWindow.show();
