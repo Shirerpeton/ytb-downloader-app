@@ -17,9 +17,14 @@ const getInfo = async (link: string): Promise<ytdl.videoInfo | null> => {
     if (!valid) {
         return null;
     }
-
     // get video info
-    return (await ytdl.getInfo(link));
+    let result: ytdl.videoInfo;
+    try {
+        result = await ytdl.getInfo(link);
+    } catch (err) {
+        return null;
+    }
+    return result;
 }
 
 const downloadStream = (stream: stream.Readable, fileName: string): Promise<void> => {
