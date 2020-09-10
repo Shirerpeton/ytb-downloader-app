@@ -36,10 +36,15 @@ const Row = styled.div`
     justify-content: start;
     border-bottom: 1px solid ${props => props.theme.colors.border};
 `
-const Title = styled(CenterDiv)`
+interface TitleProps {
+    done?: boolean
+}
+
+const Title = styled(CenterDiv) <TitleProps>`
     width: 40%;
     max-width: 40%;
     border-right: 1px solid ${props => props.theme.colors.border};
+    background-color: ${props => props.done ? props.theme.colors.backgroundSecondary : props.theme.colors.background};
 `
 const Status = styled(CenterDiv)`
     width: 20%;
@@ -68,8 +73,10 @@ const Start = styled.button`
 interface BatchModeProps {
     config: AppConfig,
     ipcRenderer: IpcRenderer,
-    isBlocked: boolean,
-    setIsBlocked: React.Dispatch<React.SetStateAction<boolean>>
+    isGettingInfo: boolean,
+    setIsGettingInfo: React.Dispatch<React.SetStateAction<boolean>>,
+    isProcessing: boolean,
+    setIsProcessing: React.Dispatch<React.SetStateAction<boolean>>
 }
 
 const BatchMode: React.FC<BatchModeProps> = (props) => {
@@ -79,14 +86,20 @@ const BatchMode: React.FC<BatchModeProps> = (props) => {
     const startProcessing = async (): Promise<void> => {
         if (videos.length === 0)
             return;
-        props.setIsBlocked(true);
-        Promise.all(videos.map((video, index): Promise<void> => {
+        props.setIsProcessing(true);
+        let processingIds: number[] = [];
+        const promises: Promise<number>[] = (videos.map((video, index): Promise<number> | null=> {
             const actualAudioFormat: ytdl.videoFormat = (video.audioFormat === 0) ? null : video.audioFormats[video.audioFormat - 1];
             const actualVideoFormat: ytdl.videoFormat = (video.videoFormat === 0) ? null : video.videoFormats[video.videoFormat - 1];
-            return props.ipcRenderer.invoke('process', video.info, actualAudioFormat, actualVideoFormat, video.extension, index);
-        }));
-        props.setIsBlocked(false);
-
+            if (video.status === 'wait') {
+                processingIds.push(index);
+                return props.ipcRenderer.invoke('process', video.info, actualAudioFormat, actualVideoFormat, video.extension, index);
+            } else return null;
+        }).filter(elem => elem !== null) as unknown as Promise<number>[]);
+        setVideos(oldVideos => oldVideos.map((video: Video): Video => ({ ...video, status: video.status === 'wait' ? 'processing' : video.status })));
+        const processedIds: number[] = await Promise.all(promises);
+        setVideos(oldVideos => oldVideos.map((video, index): Video => ({ ...video, status: (video.status === 'processing' && processedIds.includes(index) ? 'done' : video.status) })));
+        props.setIsProcessing(false);
     }
 
     return (
@@ -98,7 +111,7 @@ const BatchMode: React.FC<BatchModeProps> = (props) => {
                     <Progress>Progress</Progress>
                 </Row>
                 {videos.map((video, index) => (<Row key={index}>
-                    <Title>{video.info.videoDetails.title}</Title>
+                    <Title done={video.status === 'done'}>{video.info.videoDetails.title}</Title>
                     <Status>
                         <StatusLine ipcRenderer={props.ipcRenderer} index={index} />
                     </Status>
@@ -107,9 +120,9 @@ const BatchMode: React.FC<BatchModeProps> = (props) => {
                     </Progress>
                 </Row>))}
             </VideoList>
-            <AddLinkForm ipcRenderer={props.ipcRenderer} config={props.config} link={link} setLink={setLink} isBlocked={props.isBlocked} setIsBlocked={props.setIsBlocked} setVideos={setVideos} videos={videos} />
+            <AddLinkForm ipcRenderer={props.ipcRenderer} config={props.config} link={link} setLink={setLink} isGettingInfo={props.isGettingInfo} setIsGettingInfo={props.setIsGettingInfo} setVideos={setVideos} videos={videos} />
             <Br />
-            <Start onClick={startProcessing} disabled={props.isBlocked}>Start</Start>
+            <Start onClick={startProcessing} disabled={props.isGettingInfo}>Start</Start>
         </React.Fragment>
     );
 }

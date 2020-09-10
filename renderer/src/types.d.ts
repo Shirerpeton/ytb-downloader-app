@@ -33,5 +33,6 @@ export interface Video {
     videoFormats: ytdl.videoFormat[],
     audioFormat: number,
     videoFormat: number,
-    extension: string
+    extension: string,
+    status: 'wait' | 'processing' | 'done'
 }

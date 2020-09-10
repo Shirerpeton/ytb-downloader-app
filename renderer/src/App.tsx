@@ -71,7 +71,8 @@ type Mode = 'single' | 'batch';
 const App: React.FC = () => {
   const [mode, setMode] = useState<Mode>('single');
   const [config, setConfig] = useState<AppConfig>(defaultConfig);
-  const [isBlocked, setIsBlocked] = useState<boolean>(false);
+  const [isProcessing, setIsProcessing] = useState<boolean>(false);
+  const [isGettingInfo, setIsGettingInfo] = useState<boolean>(false);
 
   useEffect(() => {
     const detectFfmpeg = async (): Promise<boolean> => {
@@ -91,12 +92,15 @@ const App: React.FC = () => {
       <ControlsContainer>
         <Controls>
           <ModeButtons>
-            <ModeButton onClick={() => { if (!isBlocked) setMode('single') }} selected={mode === 'single'} disabled={isBlocked}>Single Video Mode</ModeButton>
-            <ModeButton onClick={() => { if (!isBlocked) setMode('batch') }} selected={mode === 'batch'} disabled={isBlocked}>Batch Mode</ModeButton>
+            <ModeButton onClick={() => { if (!isGettingInfo && !isProcessing) setMode('single') }} selected={mode === 'single'} disabled={isGettingInfo || isProcessing}>Single Video Mode</ModeButton>
+            <ModeButton onClick={() => { if (!isGettingInfo && !isProcessing) setMode('batch') }} selected={mode === 'batch'} disabled={isGettingInfo || isProcessing}>Batch Mode</ModeButton>
           </ModeButtons>
         </Controls>
         <ModeContainer>
-          {mode === 'single' ? <SingleVideoMode config={config} ipcRenderer={ipcRenderer} isBlocked={isBlocked} setIsBlocked={setIsBlocked}/> : <BatchMode config={config} ipcRenderer={ipcRenderer} isBlocked={isBlocked} setIsBlocked={setIsBlocked}/>}
+          {(mode === 'single')?
+            <SingleVideoMode config={config} ipcRenderer={ipcRenderer} isGettingInfo={isGettingInfo} setIsGettingInfo={setIsGettingInfo} isProcessing={isProcessing} setIsProcessing={setIsProcessing}/>
+            :
+            <BatchMode config={config} ipcRenderer={ipcRenderer} isGettingInfo={isGettingInfo} setIsGettingInfo={setIsGettingInfo} isProcessing={isProcessing} setIsProcessing={setIsProcessing}/>}
         </ModeContainer>
       </ControlsContainer>
     </AppContainer>

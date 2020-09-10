@@ -67,8 +67,8 @@ interface AddLinkFormProps {
     readonly setLink: React.Dispatch<React.SetStateAction<string>>,
     readonly ipcRenderer: IpcRenderer,
     readonly config: AppConfig,
-    readonly isBlocked: boolean,
-    readonly setIsBlocked: React.Dispatch<React.SetStateAction<boolean>>,
+    readonly isGettingInfo: boolean,
+    readonly setIsGettingInfo: React.Dispatch<React.SetStateAction<boolean>>,
     readonly setVideos: React.Dispatch<React.SetStateAction<Video[]>>,
     readonly videos: Video[]
 }
@@ -79,7 +79,7 @@ const AddLinkForm: React.FC<AddLinkFormProps> = (props) => {
 
     const handleSubmitInfo = async (event: React.SyntheticEvent): Promise<void> => {
         event.preventDefault();
-        props.setIsBlocked(true);
+        props.setIsGettingInfo(true);
         const infoOrNull: ytdl.videoInfo | null = await props.ipcRenderer.invoke('getInfo', props.link);
         if (infoOrNull === null)
             setError('Invalid url for youtube video');
@@ -87,7 +87,7 @@ const AddLinkForm: React.FC<AddLinkFormProps> = (props) => {
             const videoIds: string[] = props.videos.map(video => video.info.videoDetails.videoId);
             if (videoIds.includes(infoOrNull.videoDetails.videoId)) {
                 setError('Video is already on the list');
-                props.setIsBlocked(false);
+                props.setIsGettingInfo(false);
                 return;
             }
             let audioFormat = 0, videoFormat = 0;
@@ -108,18 +108,18 @@ const AddLinkForm: React.FC<AddLinkFormProps> = (props) => {
             const audioFormats: ytdl.videoFormat[] = utils.getAudioFormats(infoOrNull.formats);
             const videoFormats: ytdl.videoFormat[] = utils.getVideoFormats(infoOrNull.formats);
             if (extension !== '')
-                props.setVideos(oldVideos => [...oldVideos, {info: infoOrNull, audioFormat, videoFormat, extension, audioFormats, videoFormats}]);
+                props.setVideos(oldVideos => [...oldVideos, {info: infoOrNull, audioFormat, videoFormat, extension, audioFormats, videoFormats, status: 'wait'}]);
         }
-        props.setIsBlocked(false);
+        props.setIsGettingInfo(false);
     }
 
     return (
         <LinkForm onSubmit={handleSubmitInfo}>
             <LinkInputContainer>
-                <LinkInput type='text' id='link' value={props.link} onChange={(event) => { if (!props.isBlocked) setError(''); props.setLink(event.target.value); }} gettingInfo={props.isBlocked} error={error} required placeholder='Youtube link' />
+                <LinkInput type='text' id='link' value={props.link} onChange={(event) => { if (!props.isGettingInfo) setError(''); props.setLink(event.target.value); }} gettingInfo={props.isGettingInfo} error={error} required placeholder='Youtube link' />
                 {error !== '' ? <Error>{error}</Error> : null}
             </LinkInputContainer>
-            <SubmitButton type='submit' value='Add' disabled={props.isBlocked} />
+            <SubmitButton type='submit' value='Add' disabled={props.isGettingInfo} />
         </LinkForm>
     );
 }

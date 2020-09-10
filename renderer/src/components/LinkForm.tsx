@@ -70,8 +70,8 @@ interface LinkFormProps {
   readonly ipcRenderer: IpcRenderer,
   readonly config: AppConfig,
   readonly selectTrack: (formatType: 'audio' | 'video') => (newFormat: number) => void,
-  readonly isBlocked: boolean,
-  readonly setIsBlocked: React.Dispatch<React.SetStateAction<boolean>>,
+  readonly isGettingInfo: boolean,
+  readonly setIsGettingInfo: React.Dispatch<React.SetStateAction<boolean>>,
 }
 
 const LinkFormComponent: React.FC<LinkFormProps> = (props: LinkFormProps) => {
@@ -80,7 +80,7 @@ const LinkFormComponent: React.FC<LinkFormProps> = (props: LinkFormProps) => {
 
   const handleSubmitInfo = async (event: React.SyntheticEvent): Promise<void> => {
     event.preventDefault();
-    props.setIsBlocked(true);
+    props.setIsGettingInfo(true);
     const infoOrNull: ytdl.videoInfo | null = await props.ipcRenderer.invoke('getInfo', props.link);
     if (infoOrNull === null)
       setError('Invalid url for youtube video');
@@ -96,16 +96,16 @@ const LinkFormComponent: React.FC<LinkFormProps> = (props: LinkFormProps) => {
       }
 
     }
-    props.setIsBlocked(false);
+    props.setIsGettingInfo(false);
   }
 
   return (
     <LinkForm onSubmit={handleSubmitInfo}>
       <LinkInputContainer>
-        <LinkInput type='text' id='link' value={props.link} onChange={(event) => { if (!props.isBlocked) setError(''); props.setLink(event.target.value); }} gettingInfo={props.isBlocked} error={error} required placeholder='Youtube link' />
+        <LinkInput type='text' id='link' value={props.link} onChange={(event) => { if (!props.isGettingInfo) setError(''); props.setLink(event.target.value); }} gettingInfo={props.isGettingInfo} error={error} required placeholder='Youtube link' />
         {error !== '' ? <Error>{error}</Error> : null}
       </LinkInputContainer>
-      <SubmitButton type='submit' value='Get info' disabled={props.isBlocked}/>
+      <SubmitButton type='submit' value='Get info' disabled={props.isGettingInfo}/>
     </LinkForm>
   );
 }

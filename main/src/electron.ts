@@ -59,7 +59,7 @@ function createWindow() {
         return await helpers.loadConfig(msg);
     });
 
-    ipcMain.handle('process', async (_: IpcMainInvokeEvent, info: ytdl.videoInfo, audioFormat: ytdl.videoFormat, videoFormat: ytdl.videoFormat, extension: string, index?: number): Promise<void> => {
+    ipcMain.handle('process', async (_: IpcMainInvokeEvent, info: ytdl.videoInfo, audioFormat: ytdl.videoFormat, videoFormat: ytdl.videoFormat, extension: string, index?: number): Promise<number> => {
         const actualMsg: Messages = {sendStatusMessage: sendMessage('status-line-message', index), sendProgressMessage: sendMessage('progress-bar-progress', index), sendProgressToggle: sendMessage('progress-bar-toggle', index), sendErrorMessage};
         actualMsg.sendProgressToggle(true);
         const {audioFileName, videoFileName} = await helpers.download(info, audioFormat, videoFormat, actualMsg);
@@ -69,6 +69,7 @@ function createWindow() {
         await helpers.cleanUp(audioFileName, videoFileName);
         actualMsg.sendStatusMessage('Done');
         actualMsg.sendProgressToggle(false);
+        return index === undefined? -1 : index;
     });
 }
 
