@@ -85,13 +85,15 @@ const LinkFormComponent: React.FC<LinkFormProps> = (props: LinkFormProps) => {
     if (infoOrNull === null)
       setError('Invalid url for youtube video');
     else {
-      props.setYtbVideoInfo({ info: infoOrNull, audioFormats: utils.getAudioFormats(infoOrNull.formats), videoFormats: utils.getVideoFormats(infoOrNull.formats) });
+      const audioFormats: ytdl.videoFormat[] = utils.getAudioFormats(infoOrNull.formats);
+      const videoFormats: ytdl.videoFormat[] = utils.getVideoFormats(infoOrNull.formats)
+      props.setYtbVideoInfo({ info: infoOrNull, audioFormats, videoFormats});
       if (props.config.highestQuality && props.config.onlyAudio)
-        props.selectTrack('audio')(1);
+      props.selectTrack('audio')(audioFormats.indexOf(ytdl.chooseFormat(infoOrNull.formats, {quality: "highestaudio"})) + 1);
       else {
         if (props.config.highestQuality) {
-          props.selectTrack('audio')(1);
-          props.selectTrack('video')(1);
+          props.selectTrack('audio')(audioFormats.indexOf(ytdl.chooseFormat(infoOrNull.formats, {quality: "highestaudio"})) + 1);
+          props.selectTrack('video')(videoFormats.indexOf(ytdl.chooseFormat(infoOrNull.formats, {quality: "highestvideo"})) + 1);
         }
       }
 
