@@ -4,7 +4,7 @@ import path from 'path';
 import helpers from './helpers.js';
 import ytdl from 'ytdl-core';
 
-import { AppConfig, Messages} from '../../renderer/src/types.js';
+import { AppConfig, Messages} from '../../renderer/types/types.js';
 
 let mainWindow: BrowserWindow;
 
@@ -52,20 +52,20 @@ function createWindow() {
         return await helpers.getInfo(link);
     });
 
-    ipcMain.handle('detectFfmpeg', async (): Promise<boolean> => {
-        return await helpers.detectFfmpeg(msg);
+    ipcMain.handle('detectFfmpeg', async (_: IpcMainInvokeEvent, path: string): Promise<boolean> => {
+        return await helpers.detectFfmpeg(msg, path);
     });
 
     ipcMain.handle('getConfig', async (_: IpcMainInvokeEvent): Promise<AppConfig> => {
         return await helpers.loadConfig(msg);
     });
 
-    ipcMain.handle('process', async (_: IpcMainInvokeEvent, info: ytdl.videoInfo, audioFormat: ytdl.videoFormat, videoFormat: ytdl.videoFormat, extension: string, index?: number): Promise<number> => {
+    ipcMain.handle('process', async (_: IpcMainInvokeEvent, info: ytdl.videoInfo, audioFormat: ytdl.videoFormat, videoFormat: ytdl.videoFormat, extension: string, config: AppConfig, index?: number): Promise<number> => {
         const actualMsg: Messages = {sendStatusMessage: sendMessage('status-line-message', index), sendProgressMessage: sendMessage('progress-bar-progress', index), sendProgressToggle: sendMessage('progress-bar-toggle', index), sendErrorMessage};
         actualMsg.sendProgressToggle(true);
         const {audioFileName, videoFileName} = await helpers.download(info, audioFormat, videoFormat, actualMsg);
         actualMsg.sendStatusMessage('Converting files');
-        await helpers.convert(info, audioFormat, videoFormat, audioFileName, videoFileName, extension, actualMsg);
+        await helpers.convert(info, audioFormat, videoFormat, audioFileName, videoFileName, extension, actualMsg, config);
         actualMsg.sendStatusMessage('Cleaning up');
         await helpers.cleanUp(audioFileName, videoFileName);
         actualMsg.sendStatusMessage('Done');

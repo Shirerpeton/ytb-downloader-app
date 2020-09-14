@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import styled from 'styled-components'
-import { AppConfig, Video } from '../types';
+
+import { AppConfig, Video } from '../../types/types.js';
 import { IpcRenderer } from 'electron';
 import ytdl from 'ytdl-core';
 
@@ -93,7 +94,7 @@ const BatchMode: React.FC<BatchModeProps> = (props) => {
             const actualVideoFormat: ytdl.videoFormat = (video.videoFormat === 0) ? null : video.videoFormats[video.videoFormat - 1];
             if (video.status === 'wait') {
                 processingIds.push(index);
-                return props.ipcRenderer.invoke('process', video.info, actualAudioFormat, actualVideoFormat, video.extension, index);
+                return props.ipcRenderer.invoke('process', video.info, actualAudioFormat, actualVideoFormat, video.extension, props.config, index);
             } else return null;
         }).filter(elem => elem !== null) as unknown as Promise<number>[]);
         setVideos(oldVideos => oldVideos.map((video: Video): Video => ({ ...video, status: video.status === 'wait' ? 'processing' : video.status })));

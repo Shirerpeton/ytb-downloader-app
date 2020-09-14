@@ -2,6 +2,7 @@ import { videoInfo } from 'ytdl-core'
 
 export interface AppConfig {
     [string]: any,
+    ffmpegPath: string,
     audioFormats: string[],
     videoFormats: string[],
     defaultAudioFormat: string,

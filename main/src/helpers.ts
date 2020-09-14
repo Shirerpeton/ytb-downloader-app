@@ -4,12 +4,12 @@ import fs from 'fs';
 import ffmpeg from 'fluent-ffmpeg';
 import ytdl from 'ytdl-core';
 
-import { AppConfig, Messages } from '../../renderer/src/types.js';
+import { AppConfig, Messages } from '../../renderer/types/types.js';
 
 const outputDir = './output/';
 const tempDir = './temp/';
 const configFile = './config.cfg'
-const ffmpegPath = './ffmpeg/bin/ffmpeg.exe'
+//const ffmpegPath = './ffmpeg/bin/ffmpeg.exe'
 
 const getInfo = async (link: string): Promise<ytdl.videoInfo | null> => {
     // validating video url
@@ -103,13 +103,14 @@ interface ConvertFunc {
         videoFormat: ytdl.videoFormat | null, audioFileName: string,
         videoFileName: string,
         selectedFormat: string,
-        msg: Messages
+        msg: Messages,
+        config: AppConfig
     ): Promise<void>
 }
 
-const convert: ConvertFunc = async (info, audioFormat, videoFormat, audioFileName, videoFileName, selectedFormat, msg) => {
+const convert: ConvertFunc = async (info, audioFormat, videoFormat, audioFileName, videoFileName, selectedFormat, msg, config) => {
     const title: string = (info.videoDetails.title).replace(/[\<\>\:\"\/\\\/\|\?\*]/g, '_');
-    ffmpeg.setFfmpegPath(ffmpegPath);
+    ffmpeg.setFfmpegPath(config.ffmpegPath);
     await fs.promises.mkdir(outputDir, { recursive: true });
 
     if (videoFormat) {
@@ -183,9 +184,9 @@ const cleanUp = async (audioFileName: string, videoFileName: string): Promise<vo
         await fs.promises.unlink(tempDir + videoFileName);
 }
 
-const detectFfmpeg = async (msg: Messages): Promise<boolean> => {
+const detectFfmpeg = async (msg: Messages, path: string): Promise<boolean> => {
     try {
-        await fs.promises.access(ffmpegPath);
+        await fs.promises.access(path);
         return true;
     } catch (_) {
         msg.sendErrorMessage('ffmpeg is not detected!');
@@ -195,6 +196,7 @@ const detectFfmpeg = async (msg: Messages): Promise<boolean> => {
 
 const loadConfig = async (msg: Messages): Promise<AppConfig> => {
     const defaultConfig: AppConfig = {
+        ffmpegPath: './ffmpeg/bin/ffmpeg.exe',
         defaultAudioFormat: 'mp3',
         defaultVideoFormat: 'mkv',
         videoFormats: ['mkv', 'mp4'],
@@ -228,7 +230,9 @@ const loadConfig = async (msg: Messages): Promise<AppConfig> => {
             return defaultConfig;
         }
         if (defaultConfig.hasOwnProperty(pair[0])) {
-            if ((pair[0] === 'defaultAudioFormat') && (defaultConfig.audioFormats.includes(pair[1])))
+            if (pair[0] === 'ffmpegPath')
+                config[pair[0]] = pair[1];
+            else if ((pair[0] === 'defaultAudioFormat') && (defaultConfig.audioFormats.includes(pair[1])))
                 config[pair[0]] = pair[1];
             else if ((pair[0] === 'defaultVideoFormat') && (defaultConfig.videoFormats.includes(pair[1])))
                 config[pair[0]] = pair[1];

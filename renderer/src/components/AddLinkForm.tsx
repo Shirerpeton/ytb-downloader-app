@@ -3,7 +3,7 @@ import styled from 'styled-components';
 import ytdl from 'ytdl-core'
 import { IpcRenderer } from 'electron';
 
-import { AppConfig, Video } from '../types';
+import { AppConfig, Video } from '../../types/types.js';
 import utils from '../utils';
 
 interface LinkInputProps {

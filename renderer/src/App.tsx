@@ -6,7 +6,7 @@ import ErrorMessage from './components/ErrorMessage'
 import SingleVideoMode from './components/SingleVideoMode'
 import BatchMode from './components/BatchMode'
 
-import { AppConfig } from './types';
+import { AppConfig } from '../types/types';
 
 const electron = window.require('electron');  // require electron like this in all the files. Don't Use import from 'electron' syntax for importing IpcRender from electron.
 
@@ -58,6 +58,7 @@ const ModeContainer = styled.div`
 const ipcRenderer: IpcRenderer = electron.ipcRenderer;
 
 const defaultConfig: AppConfig = {
+  ffmpegPath: "./ffmpeg/bin/ffmpeg.exe",
   defaultAudioFormat: 'mp3',
   defaultVideoFormat: 'mkv',
   videoFormats: ['mkv', 'mp4'],
@@ -76,15 +77,15 @@ const App: React.FC = () => {
   const [isGettingInfo, setIsGettingInfo] = useState<boolean>(false);
 
   useEffect(() => {
-    const detectFfmpeg = async (): Promise<boolean> => {
-      return await ipcRenderer.invoke('detectFfmpeg');
+    const detectFfmpeg = async (path: string): Promise<boolean> => {
+      return await ipcRenderer.invoke('detectFfmpeg', path);
     }
     const getConfig = async (): Promise<void> => {
       const newConfig: AppConfig = await ipcRenderer.invoke('getConfig');
       setConfig(newConfig);
+      await detectFfmpeg(newConfig.ffmpegPath);
     }
     getConfig();
-    detectFfmpeg();
   }, []);
 
   return (

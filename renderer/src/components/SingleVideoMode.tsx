@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
-import { AppConfig, FileType, YtbVideoInfo } from '../types';
 import { IpcRenderer } from 'electron';
 import ytdl from 'ytdl-core';
 
+import { AppConfig, FileType, YtbVideoInfo } from '../../types/types.js';
 import utils from '../utils';
-
 
 import LinkForm from './LinkForm'
 import ProgressBar from './ProgressBar'
@@ -122,7 +121,7 @@ const SingleVideoMode: React.FC<SingleVideoModeProps> = (props) => {
         const actualVideoFormat: ytdl.videoFormat = (videoFormat === 0) ? null : ytbVideoInfo.videoFormats[videoFormat - 1];
         if (fileType !== null) {
             props.setIsProcessing(true);
-            await props.ipcRenderer.invoke('process', ytbVideoInfo.info, actualAudioFormat, actualVideoFormat, fileType.extension);
+            await props.ipcRenderer.invoke('process', ytbVideoInfo.info, actualAudioFormat, actualVideoFormat, fileType.extension, props.config);
             props.setIsProcessing(false);
         }
     }

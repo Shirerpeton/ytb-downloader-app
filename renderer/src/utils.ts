@@ -1,5 +1,6 @@
-import { AppConfig, YtbVideoInfo } from "./types";
 import ytdl, { videoFormat } from 'ytdl-core'
+
+import { AppConfig, YtbVideoInfo } from "../types/types.js";
 
 const audioQualityText = (quality: string): string => {
   switch (quality) {
