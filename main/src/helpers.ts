@@ -218,6 +218,8 @@ const loadConfig = async (msg: Messages): Promise<AppConfig> => {
     let config: AppConfig = { ...defaultConfig };
     const lines: string[] = data.toString().split('\n');
     for (let line of lines) {
+        if (line[0] === '#')
+            continue;
         const pair: string[] = line.split(':').map(param => param.replace(' ', ''));
         if ((pair.length === 1) && (pair[0] === ''))
             continue;
