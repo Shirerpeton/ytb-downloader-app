@@ -20,7 +20,8 @@ export interface YtbVideoInfo {
 export interface Messages {
     sendProgressMessage: (progress: number) => void,
     sendStatusMessage: (status: string) => void,
-    sendErrorMessage: (error: string) => void
+    sendErrorMessage: (error: string) => void,
+    sendProgressToggle: (toggle: boolean) => void
 }
 
 export interface FileType {

@@ -6,6 +6,7 @@ main/temp
 main/output
 main/ffmpeg
 main/config.cfg
+main/*.cfg
 renderer/build
 renderer/dist
 

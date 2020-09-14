@@ -3,7 +3,8 @@ import isDev from "electron-is-dev";;
 import path from 'path';
 import helpers from './helpers.js';
 import ytdl from 'ytdl-core';
-import { AppConfig, Messages} from './types/types.js';
+
+import { AppConfig, Messages} from '../../renderer/src/types.js';
 
 let mainWindow: BrowserWindow;
 

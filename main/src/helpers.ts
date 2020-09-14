@@ -4,7 +4,7 @@ import fs from 'fs';
 import ffmpeg from 'fluent-ffmpeg';
 import ytdl from 'ytdl-core';
 
-import { AppConfig, Messages } from './types/types';
+import { AppConfig, Messages } from '../../renderer/src/types.js';
 
 const outputDir = './output/';
 const tempDir = './temp/';
