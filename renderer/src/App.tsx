@@ -57,13 +57,14 @@ const ModeContainer = styled.div`
 
 const ipcRenderer: IpcRenderer = electron.ipcRenderer;
 
-const defaultConfig = {
+const defaultConfig: AppConfig = {
   defaultAudioFormat: 'mp3',
   defaultVideoFormat: 'mkv',
   videoFormats: ['mkv', 'mp4'],
   audioFormats: ['mp3', 'aac'],
   highestQuality: false,
-  onlyAudio: false
+  noVideo: false,
+  noAudio: false
 }
 
 type Mode = 'single' | 'batch';

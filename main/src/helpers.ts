@@ -199,7 +199,8 @@ const loadConfig = async (msg: Messages): Promise<AppConfig> => {
         defaultVideoFormat: 'mkv',
         videoFormats: ['mkv', 'mp4'],
         audioFormats: ['mp3', 'aac'],
-        onlyAudio: false,
+        noVideo: false,
+        noAudio: false,
         highestQuality: false
     }
     try {
@@ -231,7 +232,9 @@ const loadConfig = async (msg: Messages): Promise<AppConfig> => {
                 config[pair[0]] = pair[1];
             else if ((pair[0] === 'highestQuality') && ((pair[1] === 'true') || (pair[1] === 'false')))
                 config[pair[0]] = pair[1] === 'true' ? true : false;
-            else if ((pair[0] === 'onlyAudio') && ((pair[1] === 'true') || (pair[1] === 'false')))
+            else if ((pair[0] === 'noVideo') && ((pair[1] === 'true') || (pair[1] === 'false')))
+                config[pair[0]] = pair[1] === 'true' ? true : false;
+            else if ((pair[0] === 'noAudio') && ((pair[1] === 'true') || (pair[1] === 'false')))
                 config[pair[0]] = pair[1] === 'true' ? true : false;
             else {
                 msg.sendErrorMessage('Bad config file!');

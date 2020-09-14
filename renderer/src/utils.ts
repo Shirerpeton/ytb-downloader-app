@@ -61,15 +61,14 @@ const getFormatIndex = (formats: videoFormat[], quality: string): number => {
 
 const getDefaultFormats = (audioFormats: videoFormat[], videoFormats: videoFormat[], config: AppConfig): {audioFormat: number, videoFormat: number} => {
   let audioFormat: number = 0, videoFormat: number = 0;
-  if (config.highestQuality && config.onlyAudio) {
-      audioFormat = getFormatIndex(audioFormats, 'highestaudio') + 1;
-      videoFormat = 0;
-  } else {
-      if (config.highestQuality) {
-          audioFormat = getFormatIndex(audioFormats, 'highestaudio') + 1;
-          videoFormat = getFormatIndex(videoFormats, 'highestvideo') + 1;;
-      }
+  if (config.highestQuality) {
+    audioFormat = getFormatIndex(audioFormats, 'highestaudio') + 1;
+    videoFormat = getFormatIndex(videoFormats, 'highestvideo') + 1;;
   }
+  if (config.noAudio)
+    audioFormat = 0
+  if (config.noVideo)
+      videoFormat = 0;
   return {audioFormat, videoFormat};
 }
 

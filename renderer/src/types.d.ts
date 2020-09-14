@@ -6,7 +6,8 @@ export interface AppConfig {
     videoFormats: string[],
     defaultAudioFormat: string,
     defaultVideoFormat: string,
-    onlyAudio: boolean,
+    noVideo: boolean,
+    noAudio: boolean,
     highestQuality: boolean
 }
 
