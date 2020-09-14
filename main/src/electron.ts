@@ -4,7 +4,7 @@ import path from 'path';
 import helpers from './helpers.js';
 import ytdl from 'ytdl-core';
 
-import { AppConfig, Messages} from '../../renderer/types/types.js';
+import { AppConfig, Messages } from '../types/types.js';
 
 let mainWindow: BrowserWindow;
 

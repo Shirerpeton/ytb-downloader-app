@@ -7,6 +7,7 @@ import SingleVideoMode from './components/SingleVideoMode'
 import BatchMode from './components/BatchMode'
 
 import { AppConfig } from '../types/types';
+import defaultConfig from './defaultConfig';
 
 const electron = window.require('electron');  // require electron like this in all the files. Don't Use import from 'electron' syntax for importing IpcRender from electron.
 
@@ -57,17 +58,6 @@ const ModeContainer = styled.div`
 
 const ipcRenderer: IpcRenderer = electron.ipcRenderer;
 
-const defaultConfig: AppConfig = {
-  ffmpegPath: "./ffmpeg/bin/ffmpeg.exe",
-  defaultAudioFormat: 'mp3',
-  defaultVideoFormat: 'mkv',
-  videoFormats: ['mkv', 'mp4'],
-  audioFormats: ['mp3', 'aac'],
-  highestQuality: false,
-  noVideo: false,
-  noAudio: false
-}
-
 type Mode = 'single' | 'batch';
 
 const App: React.FC = () => {
@@ -99,10 +89,10 @@ const App: React.FC = () => {
           </ModeButtons>
         </Controls>
         <ModeContainer>
-          {(mode === 'single')?
-            <SingleVideoMode config={config} ipcRenderer={ipcRenderer} isGettingInfo={isGettingInfo} setIsGettingInfo={setIsGettingInfo} isProcessing={isProcessing} setIsProcessing={setIsProcessing}/>
+          {(mode === 'single') ?
+            <SingleVideoMode config={config} ipcRenderer={ipcRenderer} isGettingInfo={isGettingInfo} setIsGettingInfo={setIsGettingInfo} isProcessing={isProcessing} setIsProcessing={setIsProcessing} />
             :
-            <BatchMode config={config} ipcRenderer={ipcRenderer} isGettingInfo={isGettingInfo} setIsGettingInfo={setIsGettingInfo} isProcessing={isProcessing} setIsProcessing={setIsProcessing}/>}
+            <BatchMode config={config} ipcRenderer={ipcRenderer} isGettingInfo={isGettingInfo} setIsGettingInfo={setIsGettingInfo} isProcessing={isProcessing} setIsProcessing={setIsProcessing} />}
         </ModeContainer>
       </ControlsContainer>
     </AppContainer>

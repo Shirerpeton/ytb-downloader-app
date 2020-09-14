@@ -4,12 +4,11 @@ import fs from 'fs';
 import ffmpeg from 'fluent-ffmpeg';
 import ytdl from 'ytdl-core';
 
-import { AppConfig, Messages } from '../../renderer/types/types.js';
+import { AppConfig, Messages } from '../types/types.js';
+import defaultConfig from './defaultConfig.js';
 
-const outputDir = './output/';
 const tempDir = './temp/';
 const configFile = './config.cfg'
-//const ffmpegPath = './ffmpeg/bin/ffmpeg.exe'
 
 const getInfo = async (link: string): Promise<ytdl.videoInfo | null> => {
     // validating video url
@@ -111,7 +110,7 @@ interface ConvertFunc {
 const convert: ConvertFunc = async (info, audioFormat, videoFormat, audioFileName, videoFileName, selectedFormat, msg, config) => {
     const title: string = (info.videoDetails.title).replace(/[\<\>\:\"\/\\\/\|\?\*]/g, '_');
     ffmpeg.setFfmpegPath(config.ffmpegPath);
-    await fs.promises.mkdir(outputDir, { recursive: true });
+    await fs.promises.mkdir(config.outputDir, { recursive: true });
 
     if (videoFormat) {
         //if video is present
@@ -132,7 +131,7 @@ const convert: ConvertFunc = async (info, audioFormat, videoFormat, audioFileNam
             query.input(tempDir + audioFileName).audioCodec('aac').audioBitrate(audioBitrate);
             outputOptions = [...outputOptions, '-profile:v high', '-level:v 4.0', '-metadata:s:a:0 language='];
         }
-        query.output(outputDir + title + '.' + selectedFormat).outputOptions(outputOptions);
+        query.output(config.outputDir + title + '.' + selectedFormat).outputOptions(outputOptions);
         query.on('error', err => {
             console.log('An error occurred: ' + err.message)
         });
@@ -160,9 +159,9 @@ const convert: ConvertFunc = async (info, audioFormat, videoFormat, audioFileNam
                 audioQuality = '-q:a 0';
         }
         if (selectedFormat === 'aac')
-            query.audioCodec('aac').audioBitrate(audioBitrate).output(outputDir + title + '.' + selectedFormat).outputOptions(['-profile:v high', '-level:v 4.0', '-metadata:s:a:0 language=']);
+            query.audioCodec('aac').audioBitrate(audioBitrate).output(config.outputDir + title + '.' + selectedFormat).outputOptions(['-profile:v high', '-level:v 4.0', '-metadata:s:a:0 language=']);
         else (selectedFormat === 'mp3')
-        query.audioCodec('libmp3lame').output(outputDir + title + '.' + selectedFormat).outputOptions([audioQuality]);
+        query.audioCodec('libmp3lame').output(config.outputDir + title + '.' + selectedFormat).outputOptions([audioQuality]);
         query.on('error', err => {
             console.log('An error occurred: ' + err.message)
         });
@@ -195,16 +194,6 @@ const detectFfmpeg = async (msg: Messages, path: string): Promise<boolean> => {
 }
 
 const loadConfig = async (msg: Messages): Promise<AppConfig> => {
-    const defaultConfig: AppConfig = {
-        ffmpegPath: './ffmpeg/bin/ffmpeg.exe',
-        defaultAudioFormat: 'mp3',
-        defaultVideoFormat: 'mkv',
-        videoFormats: ['mkv', 'mp4'],
-        audioFormats: ['mp3', 'aac'],
-        noVideo: false,
-        noAudio: false,
-        highestQuality: false
-    }
     try {
         await fs.promises.access(configFile);
     } catch (_) {
@@ -231,6 +220,8 @@ const loadConfig = async (msg: Messages): Promise<AppConfig> => {
         }
         if (defaultConfig.hasOwnProperty(pair[0])) {
             if (pair[0] === 'ffmpegPath')
+                config[pair[0]] = pair[1];
+            else if (pair[0] === 'outputDir')
                 config[pair[0]] = pair[1];
             else if ((pair[0] === 'defaultAudioFormat') && (defaultConfig.audioFormats.includes(pair[1])))
                 config[pair[0]] = pair[1];
