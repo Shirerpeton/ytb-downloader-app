@@ -1,4 +1,4 @@
-import { YtbVideoInfo } from "./types";
+import { AppConfig, YtbVideoInfo } from "./types";
 import ytdl, { videoFormat } from 'ytdl-core'
 
 const audioQualityText = (quality: string): string => {
@@ -47,12 +47,30 @@ const getVideoFormatNames = (ytbVideoInfo: YtbVideoInfo): string[] => {
   return videoFormatsNames;
 }
 
-const getAudioFormats = (formats: ytdl.videoFormat[]) => {
+const getAudioFormats = (formats: videoFormat[]) => {
   return ytdl.filterFormats(formats, 'audioonly');
 }
 
-const getVideoFormats = (formats: ytdl.videoFormat[]) => {
+const getVideoFormats = (formats: videoFormat[]) => {
   return ytdl.filterFormats(formats, 'videoonly');
 }
 
-export default { lengthIntoText, getAudioFormatNames, getVideoFormatNames, getAudioFormats, getVideoFormats};
+const getFormatIndex = (formats: videoFormat[], quality: string): number => {
+  return formats.indexOf(ytdl.chooseFormat(formats, { quality }))
+}
+
+const getDefaultFormats = (audioFormats: videoFormat[], videoFormats: videoFormat[], config: AppConfig): {audioFormat: number, videoFormat: number} => {
+  let audioFormat: number = 0, videoFormat: number = 0;
+  if (config.highestQuality && config.onlyAudio) {
+      audioFormat = getFormatIndex(audioFormats, 'highestaudio') + 1;
+      videoFormat = 0;
+  } else {
+      if (config.highestQuality) {
+          audioFormat = getFormatIndex(audioFormats, 'highestaudio') + 1;
+          videoFormat = getFormatIndex(videoFormats, 'highestvideo') + 1;;
+      }
+  }
+  return {audioFormat, videoFormat};
+}
+
+export default { lengthIntoText, getAudioFormatNames, getVideoFormatNames, getAudioFormats, getVideoFormats, getFormatIndex, getDefaultFormats};

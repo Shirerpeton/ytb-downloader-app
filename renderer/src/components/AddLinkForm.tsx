@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import styled from 'styled-components';
 import ytdl from 'ytdl-core'
 import { IpcRenderer } from 'electron';
+
 import { AppConfig, Video } from '../types';
 import utils from '../utils';
 
@@ -90,18 +91,9 @@ const AddLinkForm: React.FC<AddLinkFormProps> = (props) => {
                 props.setIsGettingInfo(false);
                 return;
             }
-            let audioFormat = 0, videoFormat = 0;
             const audioFormats: ytdl.videoFormat[] = utils.getAudioFormats(infoOrNull.formats);
             const videoFormats: ytdl.videoFormat[] = utils.getVideoFormats(infoOrNull.formats);
-            if (props.config.highestQuality && props.config.onlyAudio) {
-                audioFormat = audioFormats.indexOf(ytdl.chooseFormat(infoOrNull.formats, {quality: "highestaudio"})) + 1;
-                videoFormat = 0;
-            } else {
-                if (props.config.highestQuality) {
-                    audioFormat = audioFormats.indexOf(ytdl.chooseFormat(infoOrNull.formats, {quality: "highestaudio"})) + 1;
-                    videoFormat = videoFormats.indexOf(ytdl.chooseFormat(infoOrNull.formats, {quality: "highestvideo"})) + 1;
-                }
-            }
+            const {audioFormat, videoFormat} = utils.getDefaultFormats(audioFormats, videoFormats, props.config);
             let extension: string = '';
             if (videoFormat !== 0)
                 extension = props.config.defaultVideoFormat;

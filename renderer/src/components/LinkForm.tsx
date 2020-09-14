@@ -87,16 +87,10 @@ const LinkFormComponent: React.FC<LinkFormProps> = (props: LinkFormProps) => {
     else {
       const audioFormats: ytdl.videoFormat[] = utils.getAudioFormats(infoOrNull.formats);
       const videoFormats: ytdl.videoFormat[] = utils.getVideoFormats(infoOrNull.formats)
-      props.setYtbVideoInfo({ info: infoOrNull, audioFormats, videoFormats});
-      if (props.config.highestQuality && props.config.onlyAudio)
-      props.selectTrack('audio')(audioFormats.indexOf(ytdl.chooseFormat(infoOrNull.formats, {quality: "highestaudio"})) + 1);
-      else {
-        if (props.config.highestQuality) {
-          props.selectTrack('audio')(audioFormats.indexOf(ytdl.chooseFormat(infoOrNull.formats, {quality: "highestaudio"})) + 1);
-          props.selectTrack('video')(videoFormats.indexOf(ytdl.chooseFormat(infoOrNull.formats, {quality: "highestvideo"})) + 1);
-        }
-      }
-
+      props.setYtbVideoInfo({ info: infoOrNull, audioFormats, videoFormats });
+      const {audioFormat, videoFormat} = utils.getDefaultFormats(audioFormats, videoFormats, props.config);
+      props.selectTrack('audio')(audioFormat);
+      props.selectTrack('video')(videoFormat);
     }
     props.setIsGettingInfo(false);
   }
@@ -107,7 +101,7 @@ const LinkFormComponent: React.FC<LinkFormProps> = (props: LinkFormProps) => {
         <LinkInput type='text' id='link' value={props.link} onChange={(event) => { if (!props.isGettingInfo) setError(''); props.setLink(event.target.value); }} gettingInfo={props.isGettingInfo} error={error} required placeholder='Youtube link' />
         {error !== '' ? <Error>{error}</Error> : null}
       </LinkInputContainer>
-      <SubmitButton type='submit' value='Get info' disabled={props.isGettingInfo}/>
+      <SubmitButton type='submit' value='Get info' disabled={props.isGettingInfo} />
     </LinkForm>
   );
 }
