@@ -7,9 +7,9 @@ const defaultConfig: AppConfig = {
   defaultVideoFormat: 'mkv',
   videoFormats: ['mkv', 'mp4'],
   audioFormats: ['mp3', 'aac'],
-  highestQuality: false,
   noVideo: false,
   noAudio: false,
+  highestQuality: false,
   audioQuality: [],
   videoQuality: []
 }

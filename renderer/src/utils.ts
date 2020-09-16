@@ -67,21 +67,27 @@ const getFormatIndex = (formats: ytdl.videoFormat[], format: ytdl.videoFormat): 
 const getDefaultFormats = (audioFormats: ytdl.videoFormat[], videoFormats: ytdl.videoFormat[], config: AppConfig): { audioFormat: number, videoFormat: number } => {
   let audioFormat: number = 0, videoFormat: number = 0;
   if (config.audioQuality.length !== 0) {
-    const format: ytdl.videoFormat | null = config.audioQuality.reduce((accFormat: ytdl.videoFormat | null, label: AudioQualityLabel) =>
-      accFormat === null ?
-        (ytdl.filterFormats(audioFormats, (format => (format.audioBitrate ? (format.qualityLabel + '' === label)
-          :
-          false)))[0])
-        : accFormat,
-      null);
+    const format: ytdl.videoFormat | null = config.audioQuality.reduce((accumulatorFormat: ytdl.videoFormat | null, label: AudioQualityLabel) => {
+      let newAccumulatorFormat: ytdl.videoFormat | null = null;
+      if (accumulatorFormat === null) {
+        const filteredFormats: ytdl.videoFormat[] = ytdl.filterFormats(audioFormats, (format => (format.audioBitrate !== null ? (format.audioBitrate + 'kbps' === label) : false)));
+        newAccumulatorFormat = filteredFormats.length !== 0 ? filteredFormats[0] : null;
+      } else
+        newAccumulatorFormat = accumulatorFormat
+      return newAccumulatorFormat;
+    }, null);
     audioFormat = format !== null ? getFormatIndex(audioFormats, format) + 1 : 0;
   }
   if (config.videoQuality.length !== 0) {
-    const format: ytdl.videoFormat | null = config.videoQuality.reduce((accFormat: ytdl.videoFormat | null, label: VideoQualityLabel) =>
-      accFormat === null ?
-        (ytdl.filterFormats(videoFormats, (format => format.qualityLabel === label))[0])
-        : accFormat,
-      null);
+    const format: ytdl.videoFormat | null = config.videoQuality.reduce((accumulatorFormat: ytdl.videoFormat | null, label: VideoQualityLabel) => {
+      let newAccumulatorFormat: ytdl.videoFormat | null = null;
+      if (accumulatorFormat === null) {
+        const filteredFormats: ytdl.videoFormat[] = ytdl.filterFormats(videoFormats, (format => format.qualityLabel === label));
+        newAccumulatorFormat = filteredFormats.length !== 0 ? filteredFormats[0] : null;
+      } else
+        newAccumulatorFormat = accumulatorFormat
+      return newAccumulatorFormat;
+    }, null);
     videoFormat = format !== null ? getFormatIndex(videoFormats, format) + 1 : 0;
   }
   if (config.highestQuality) {

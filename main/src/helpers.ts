@@ -316,7 +316,6 @@ const loadConfig = async (msg: Messages): Promise<AppConfig> => {
                                 videoQualityLabels.push('144p');
                                 break;
                             default:
-                                console.log(label);
                                 msg.sendErrorMessage('Bad config file (video quality labels)!');
                                 break;
                         }

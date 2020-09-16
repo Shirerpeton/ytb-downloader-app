@@ -87,7 +87,6 @@ const LinkFormComponent: React.FC<LinkFormProps> = (props: LinkFormProps) => {
     else {
       const audioFormats: ytdl.videoFormat[] = utils.getAudioFormats(infoOrNull.formats);
       const videoFormats: ytdl.videoFormat[] = utils.getVideoFormats(infoOrNull.formats)
-      console.log(videoFormats);
       props.setYtbVideoInfo({ info: infoOrNull, audioFormats, videoFormats });
       const {audioFormat, videoFormat} = utils.getDefaultFormats(audioFormats, videoFormats, props.config);
       props.selectTrack('audio')(audioFormat);
