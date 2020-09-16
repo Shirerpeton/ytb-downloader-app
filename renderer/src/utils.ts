@@ -1,6 +1,6 @@
-import ytdl, { videoFormat } from 'ytdl-core'
+import ytdl from 'ytdl-core'
 
-import { AppConfig, YtbVideoInfo } from "../types/types.js";
+import { AppConfig, AudioQualityLabel, VideoQualityLabel, YtbVideoInfo } from "../types/types.js";
 
 const audioQualityText = (quality: string): string => {
   switch (quality) {
@@ -37,40 +37,62 @@ const numberOrUndefined = (nbr: number | undefined): string => {
 const getAudioFormatNames = (ytbVideoInfo: YtbVideoInfo): string[] => {
   if (!ytbVideoInfo)
     return [];
-  const audioFormatsNames: string[] = ['0: None', ...ytbVideoInfo.audioFormats.map((format: videoFormat, ind: number) => `${String(ind + 1)}: audio bitrate: ${numberOrUndefined(format.audioBitrate)}; audio quality: ${audioQualityText(stringOrUndefined(format.audioQuality))}; audioChannels: ${numberOrUndefined(format.audioChannels)}; approximate size: ${Math.floor((Number(format.averageBitrate) / 1000))}mb`)];
+  const audioFormatsNames: string[] = ['0: None', ...ytbVideoInfo.audioFormats.map((format: ytdl.videoFormat, ind: number) => `${String(ind + 1)}: audio bitrate: ${numberOrUndefined(format.audioBitrate)}; audio quality: ${audioQualityText(stringOrUndefined(format.audioQuality))}; audioChannels: ${numberOrUndefined(format.audioChannels)}; approximate size: ${Math.floor((Number(format.averageBitrate) / 1000))}mb`)];
   return audioFormatsNames;
 }
 
 const getVideoFormatNames = (ytbVideoInfo: YtbVideoInfo): string[] => {
   if (!ytbVideoInfo)
     return [];
-  const videoFormatsNames: string[] = ['0: None', ...ytbVideoInfo.videoFormats.map((format: videoFormat, ind: number) => `${String(ind + 1)}: video bitrate: ${format.bitrate}; width: ${numberOrUndefined(format.width)}; height: ${numberOrUndefined(format.height)}; fps: ${numberOrUndefined(format.fps)}; quality: ${format.quality}; approximate size: ${Math.floor((Number(format.averageBitrate) / 1000))}mb`)];
+  const videoFormatsNames: string[] = ['0: None', ...ytbVideoInfo.videoFormats.map((format: ytdl.videoFormat, ind: number) => `${String(ind + 1)}: video bitrate: ${format.bitrate}; width: ${numberOrUndefined(format.width)}; height: ${numberOrUndefined(format.height)}; fps: ${numberOrUndefined(format.fps)}; quality: ${format.quality}; approximate size: ${Math.floor((Number(format.averageBitrate) / 1000))}mb`)];
   return videoFormatsNames;
 }
 
-const getAudioFormats = (formats: videoFormat[]) => {
+const getAudioFormats = (formats: ytdl.videoFormat[]) => {
   return ytdl.filterFormats(formats, 'audioonly');
 }
 
-const getVideoFormats = (formats: videoFormat[]) => {
+const getVideoFormats = (formats: ytdl.videoFormat[]) => {
   return ytdl.filterFormats(formats, 'videoonly');
 }
 
-const getFormatIndex = (formats: videoFormat[], quality: string): number => {
-  return formats.indexOf(ytdl.chooseFormat(formats, { quality }))
+const getFromatByQuality = (formats: ytdl.videoFormat[], quality: string): number => {
+  return formats.indexOf(ytdl.chooseFormat(formats, { quality }));
 }
 
-const getDefaultFormats = (audioFormats: videoFormat[], videoFormats: videoFormat[], config: AppConfig): {audioFormat: number, videoFormat: number} => {
+const getFormatIndex = (formats: ytdl.videoFormat[], format: ytdl.videoFormat): number => {
+  return formats.indexOf(format);
+}
+
+const getDefaultFormats = (audioFormats: ytdl.videoFormat[], videoFormats: ytdl.videoFormat[], config: AppConfig): { audioFormat: number, videoFormat: number } => {
   let audioFormat: number = 0, videoFormat: number = 0;
+  if (config.audioQuality.length !== 0) {
+    const format: ytdl.videoFormat | null = config.audioQuality.reduce((accFormat: ytdl.videoFormat | null, label: AudioQualityLabel) =>
+      accFormat === null ?
+        (ytdl.filterFormats(audioFormats, (format => (format.audioBitrate ? (format.qualityLabel + '' === label)
+          :
+          false)))[0])
+        : accFormat,
+      null);
+    audioFormat = format !== null ? getFormatIndex(audioFormats, format) + 1 : 0;
+  }
+  if (config.videoQuality.length !== 0) {
+    const format: ytdl.videoFormat | null = config.videoQuality.reduce((accFormat: ytdl.videoFormat | null, label: VideoQualityLabel) =>
+      accFormat === null ?
+        (ytdl.filterFormats(videoFormats, (format => format.qualityLabel === label))[0])
+        : accFormat,
+      null);
+    videoFormat = format !== null ? getFormatIndex(videoFormats, format) + 1 : 0;
+  }
   if (config.highestQuality) {
-    audioFormat = getFormatIndex(audioFormats, 'highestaudio') + 1;
-    videoFormat = getFormatIndex(videoFormats, 'highestvideo') + 1;;
+    audioFormat = getFromatByQuality(audioFormats, 'highestaudio') + 1;
+    videoFormat = getFromatByQuality(videoFormats, 'highestvideo') + 1;;
   }
   if (config.noAudio)
     audioFormat = 0
   if (config.noVideo)
-      videoFormat = 0;
-  return {audioFormat, videoFormat};
+    videoFormat = 0;
+  return { audioFormat, videoFormat };
 }
 
-export default { lengthIntoText, getAudioFormatNames, getVideoFormatNames, getAudioFormats, getVideoFormats, getFormatIndex, getDefaultFormats};
+export default { lengthIntoText, getAudioFormatNames, getVideoFormatNames, getAudioFormats, getVideoFormats, getFormatIndex, getDefaultFormats };

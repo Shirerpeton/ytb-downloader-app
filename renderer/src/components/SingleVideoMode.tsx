@@ -117,8 +117,8 @@ const SingleVideoMode: React.FC<SingleVideoModeProps> = (props) => {
     const startProcessing = async (): Promise<void> => {
         if (ytbVideoInfo === null)
             return;
-        const actualAudioFormat: ytdl.videoFormat = (audioFormat === 0) ? null : ytbVideoInfo.audioFormats[audioFormat - 1];
-        const actualVideoFormat: ytdl.videoFormat = (videoFormat === 0) ? null : ytbVideoInfo.videoFormats[videoFormat - 1];
+        const actualAudioFormat: ytdl.videoFormat | null = (audioFormat === 0) ? null : ytbVideoInfo.audioFormats[audioFormat - 1];
+        const actualVideoFormat: ytdl.videoFormat | null = (videoFormat === 0) ? null : ytbVideoInfo.videoFormats[videoFormat - 1];
         if (fileType !== null) {
             props.setIsProcessing(true);
             await props.ipcRenderer.invoke('process', ytbVideoInfo.info, actualAudioFormat, actualVideoFormat, fileType.extension, props.config);

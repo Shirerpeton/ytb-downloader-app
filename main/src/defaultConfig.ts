@@ -9,7 +9,9 @@ const defaultConfig: AppConfig = {
   audioFormats: ['mp3', 'aac'],
   highestQuality: false,
   noVideo: false,
-  noAudio: false
+  noAudio: false,
+  audioQuality: [],
+  videoQuality: []
 }
 
 export default defaultConfig;

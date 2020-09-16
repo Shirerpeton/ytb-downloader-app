@@ -90,8 +90,8 @@ const BatchMode: React.FC<BatchModeProps> = (props) => {
         props.setIsProcessing(true);
         let processingIds: number[] = [];
         const promises: Promise<number>[] = (videos.map((video, index): Promise<number> | null=> {
-            const actualAudioFormat: ytdl.videoFormat = (video.audioFormat === 0) ? null : video.audioFormats[video.audioFormat - 1];
-            const actualVideoFormat: ytdl.videoFormat = (video.videoFormat === 0) ? null : video.videoFormats[video.videoFormat - 1];
+            const actualAudioFormat: ytdl.videoFormat | null = (video.audioFormat === 0) ? null : video.audioFormats[video.audioFormat - 1];
+            const actualVideoFormat: ytdl.videoFormat | null = (video.videoFormat === 0) ? null : video.videoFormats[video.videoFormat - 1];
             if (video.status === 'wait') {
                 processingIds.push(index);
                 return props.ipcRenderer.invoke('process', video.info, actualAudioFormat, actualVideoFormat, video.extension, props.config, index);

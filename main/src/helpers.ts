@@ -4,7 +4,7 @@ import fs from 'fs';
 import ffmpeg from 'fluent-ffmpeg';
 import ytdl from 'ytdl-core';
 
-import { AppConfig, Messages } from '../types/types.js';
+import { AppConfig, VideoQualityLabel, AudioQualityLabel, Messages } from '../types/types.js';
 import defaultConfig from './defaultConfig.js';
 
 const tempDir = './temp/';
@@ -211,7 +211,7 @@ const loadConfig = async (msg: Messages): Promise<AppConfig> => {
     for (let line of lines) {
         if (line[0] === '#')
             continue;
-        const pair: string[] = line.split(':').map(param => param.replace(' ', ''));
+        const pair: string[] = line.split(':').map(param => param.replace(/ /g, ''));
         if ((pair.length === 1) && (pair[0] === ''))
             continue;
         if (pair.length !== 2) {
@@ -233,7 +233,92 @@ const loadConfig = async (msg: Messages): Promise<AppConfig> => {
                 config[pair[0]] = pair[1] === 'true' ? true : false;
             else if ((pair[0] === 'noAudio') && ((pair[1] === 'true') || (pair[1] === 'false')))
                 config[pair[0]] = pair[1] === 'true' ? true : false;
-            else {
+            else if (pair[0] === 'audioQuality') {
+                const audioQualityLabelCandidates: string[] = pair[1].split(',');
+                const audioQualityLabels: AudioQualityLabel[] = [];
+                audioQualityLabelCandidates.forEach(label => {
+                    switch (label) {
+                        case '256kbps':
+                            audioQualityLabels.push('256kbps');
+                            break;
+                        case '160kbps':
+                            audioQualityLabels.push('160kbps');
+                            break;
+                        case '128kbps':
+                            audioQualityLabels.push('128kbps');
+                            break;
+                        case '64kbps':
+                            audioQualityLabels.push('64kbps');
+                            break;
+                        case '48kbps':
+                            audioQualityLabels.push('48kbps');
+                            break;
+                        default:
+                            msg.sendErrorMessage('Bad config file (audio quality labels)!');
+                    }
+                });
+                config.audioQuality = audioQualityLabels;
+            } else if (pair[0] === 'videoQuality') {
+                const videoQualityLabelCandidates: string[] = pair[1].split(',');
+                const videoQualityLabels: VideoQualityLabel[] = [];
+                videoQualityLabelCandidates.forEach(label => {
+                    switch (label) {
+                        case '2160p60':
+                            videoQualityLabels.push('2160p60');
+                            break;
+                        case '2160p':
+                            videoQualityLabels.push('2160p');
+                            break;
+                        case '1440p60':
+                            videoQualityLabels.push('1440p60');
+                            break;
+                        case '1440p':
+                            videoQualityLabels.push('1440p');
+                            break;
+                        case '1080p60':
+                            videoQualityLabels.push('1080p60');
+                            break;
+                        case '1080p':
+                            videoQualityLabels.push('1080p');
+                            break;
+                        case '720p60':
+                            videoQualityLabels.push('720p60');
+                            break;
+                        case '720p':
+                            videoQualityLabels.push('720p');
+                            break;
+                        case '480p60':
+                            videoQualityLabels.push('480p60');
+                            break;
+                        case '480p':
+                            videoQualityLabels.push('480p');
+                            break;
+                        case '320p60':
+                            videoQualityLabels.push('360p60');
+                            break;
+                        case '360p':
+                            videoQualityLabels.push('360p');
+                            break;
+                        case '240p60':
+                            videoQualityLabels.push('240p60');
+                            break;
+                        case '240p':
+                            videoQualityLabels.push('240p');
+                            break;
+                        case '144p60':
+                            videoQualityLabels.push('144p60');
+                            break;
+                        case '144p':
+                            videoQualityLabels.push('144p');
+                            break;
+                        default:
+                            console.log(label);
+                            msg.sendErrorMessage('Bad config file (video quality labels)!');
+                            break;
+                    }
+                });
+                config.videoQuality = videoQualityLabels;
+            } else {
                 msg.sendErrorMessage('Bad config file!');
                 return defaultConfig;
             }
@@ -242,4 +327,4 @@ const loadConfig = async (msg: Messages): Promise<AppConfig> => {
     return config;
 }
 
-export default { getInfo, download, convert, cleanUp, loadConfig, detectFfmpeg};
+export default { getInfo, download, convert, cleanUp, loadConfig, detectFfmpeg };
