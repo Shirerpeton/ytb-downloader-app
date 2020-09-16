@@ -263,62 +263,18 @@ const loadConfig = async (msg: Messages): Promise<AppConfig> => {
                     config.audioQuality = [];
             } else if (pair[0] === 'videoQuality') {
                 if (pair[1].length !== 0) {
+                    const possibleLables: string[] = ['144p', '144p 15fps', '144p60 HDR', '240p', '240p60 HDR', '270p', '360p', '360p60 HDR',
+                    '480p', '480p60 HDR', '720p', '720p60', '720p60 HDR', '1080p', '1080p60', '1080p60 HDR', '1440p',
+                    '1440p60', '1440p60 HDR', '2160p', '2160p60', '2160p60 HDR', '4320p', '4320p60'];
+                    const labelsWithoutSpaces: string[] = possibleLables.map(label => label.replace(/ /g, ''));
                     const videoQualityLabelCandidates: string[] = pair[1].split(',');
                     const videoQualityLabels: VideoQualityLabel[] = [];
                     videoQualityLabelCandidates.forEach(label => {
-                        switch (label) {
-                            case '2160p60':
-                                videoQualityLabels.push('2160p60');
-                                break;
-                            case '2160p':
-                                videoQualityLabels.push('2160p');
-                                break;
-                            case '1440p60':
-                                videoQualityLabels.push('1440p60');
-                                break;
-                            case '1440p':
-                                videoQualityLabels.push('1440p');
-                                break;
-                            case '1080p60':
-                                videoQualityLabels.push('1080p60');
-                                break;
-                            case '1080p':
-                                videoQualityLabels.push('1080p');
-                                break;
-                            case '720p60':
-                                videoQualityLabels.push('720p60');
-                                break;
-                            case '720p':
-                                videoQualityLabels.push('720p');
-                                break;
-                            case '480p60':
-                                videoQualityLabels.push('480p60');
-                                break;
-                            case '480p':
-                                videoQualityLabels.push('480p');
-                                break;
-                            case '320p60':
-                                videoQualityLabels.push('360p60');
-                                break;
-                            case '360p':
-                                videoQualityLabels.push('360p');
-                                break;
-                            case '240p60':
-                                videoQualityLabels.push('240p60');
-                                break;
-                            case '240p':
-                                videoQualityLabels.push('240p');
-                                break;
-                            case '144p60':
-                                videoQualityLabels.push('144p60');
-                                break;
-                            case '144p':
-                                videoQualityLabels.push('144p');
-                                break;
-                            default:
-                                msg.sendErrorMessage('Bad config file (video quality labels)!');
-                                break;
-                        }
+                        const labelIndex: number = labelsWithoutSpaces.indexOf(label);
+                        if (labelIndex !== -1)
+                            videoQualityLabels.push(possibleLables[labelIndex] as VideoQualityLabel);
+                        else
+                            msg.sendErrorMessage('Bad config file (video quality labels)!');
                     });
                     config.videoQuality = videoQualityLabels;
                 } else config.videoQuality = [];
