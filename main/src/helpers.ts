@@ -6,6 +6,7 @@ import ytdl from 'ytdl-core';
 
 import { AppConfig, VideoQualityLabel, AudioQualityLabel, Messages } from '../types/types.js';
 import defaultConfig from './defaultConfig.js';
+import defaultConfigText from './defaultConfigText.js';
 
 const tempDir = './temp/';
 const configFile = './config.cfg'
@@ -202,7 +203,7 @@ const loadConfig = async (msg: Messages): Promise<AppConfig> => {
             if ((key !== 'audioFormats') && (key !== 'videoFormats'))
                 data += `${key}: ${value}\n`
         }
-        fs.promises.writeFile(configFile, data);
+        fs.promises.writeFile(configFile, defaultConfigText);
         return defaultConfig;
     }
     const data = await fs.promises.readFile(configFile);
