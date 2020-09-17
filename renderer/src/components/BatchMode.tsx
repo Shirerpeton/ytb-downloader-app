@@ -10,7 +10,7 @@ import StatusLine from './StatusLine'
 import ProgressBar from './ProgressBar';
 
 const VideoList = styled.div`
-    //overflow: scroll;
+    overflow-y: auto;
     border-radius: 0.25rem;
     border: 1px solid ${props => props.theme.colors.border};
     height:  70vh;
