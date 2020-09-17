@@ -37,7 +37,8 @@
     "react-prebuild": "cross-env cp \"../main/dist/*.js\" \"./public/\"",
     "electron-build": "electron-builder",
     "release": "npm run react-prebuild && npm run react-build && electron-builder --publish=always",
-    "build": "npm run react-build && npm run electron-build",
+    "build": "npm run react-prebuild && npm run react-build && npm run electron-build",
+    "build-win": "npm run react-prebuild-win && npm run react-build && npm run electron-build",
     "start": "cross-env BROWSER=none npm run react-start"
   },
   "eslintConfig": {
