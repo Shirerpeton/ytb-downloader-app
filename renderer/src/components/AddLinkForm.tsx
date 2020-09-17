@@ -80,6 +80,10 @@ const AddLinkForm: React.FC<AddLinkFormProps> = (props) => {
 
     const handleSubmitInfo = async (event: React.SyntheticEvent): Promise<void> => {
         event.preventDefault();
+        if (props.link === '') {
+          setError('Provide url fot youtube video');
+          return;
+        }
         props.setIsGettingInfo(true);
         const infoOrNull: ytdl.videoInfo | null = await props.ipcRenderer.invoke('getInfo', props.link);
         if (infoOrNull === null)
@@ -108,7 +112,7 @@ const AddLinkForm: React.FC<AddLinkFormProps> = (props) => {
     return (
         <LinkForm onSubmit={handleSubmitInfo}>
             <LinkInputContainer>
-                <LinkInput type='text' id='link' value={props.link} onChange={(event) => { if (!props.isGettingInfo) setError(''); props.setLink(event.target.value); }} gettingInfo={props.isGettingInfo} error={error} required placeholder='Youtube link' />
+                <LinkInput type='text' id='link' value={props.link} onChange={(event) => { if (!props.isGettingInfo) setError(''); props.setLink(event.target.value); }} gettingInfo={props.isGettingInfo} error={error} placeholder='Youtube link' />
                 {error !== '' ? <Error>{error}</Error> : null}
             </LinkInputContainer>
             <SubmitButton type='submit' value='Add' disabled={props.isGettingInfo} />
