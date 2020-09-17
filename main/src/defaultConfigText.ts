@@ -10,6 +10,7 @@ defaultAudioFormat: mp3
 #default video (container) format from avalaible ones ('mkv', 'mp4')
 defaultVideoFormat: mkv
 
+
 #default video and audio tracks, flags are in order of their piority from higher pirity to lower priority (higher piority flags override lower priority)
 
 #deselect video

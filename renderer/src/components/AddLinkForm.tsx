@@ -18,7 +18,9 @@ const LinkInput = styled.input<LinkInputProps>`
   border: 1px solid ${props => props.theme.colors.border};
   border-radius: 0.25rem;
   width: 25rem;
-  margin-right: 1rem;
+  border-bottom-right-radius: 0;
+  border-top-right-radius: 0;
+  border-right: 0;
   font-size: 1.25rem;
   ${props => props.error !== '' ?
         'border: 1px solid' + props.theme.colors.error + '};'
@@ -43,6 +45,8 @@ const SubmitButton = styled.input`
   color: ${props => props.theme.colors.primary};
   font-size: 1.25rem;
   border-radius: 0.25rem;
+  border-bottom-left-radius: 0;
+  border-top-left-radius: 0;
   padding: 0.5rem;
   &:focus {
     outline: none;
