@@ -241,19 +241,14 @@ const loadConfig = async (msg: Messages): Promise<AppConfig> => {
                     audioQualityLabelCandidates.forEach(label => {
                         switch (label) {
                             case '256kbps':
-                                audioQualityLabels.push('256kbps');
-                                break;
                             case '160kbps':
-                                audioQualityLabels.push('160kbps');
-                                break;
                             case '128kbps':
-                                audioQualityLabels.push('128kbps');
-                                break;
                             case '64kbps':
-                                audioQualityLabels.push('64kbps');
-                                break;
                             case '48kbps':
-                                audioQualityLabels.push('48kbps');
+                                if (!audioQualityLabels.includes(label))
+                                    audioQualityLabels.push(label);
+                                else
+                                    msg.sendErrorMessage('Bad config file (audio quality labels duplicate)!');
                                 break;
                             default:
                                 msg.sendErrorMessage('Bad config file (audio quality labels)!');
@@ -272,9 +267,12 @@ const loadConfig = async (msg: Messages): Promise<AppConfig> => {
                     const videoQualityLabels: VideoQualityLabel[] = [];
                     videoQualityLabelCandidates.forEach(label => {
                         const labelIndex: number = labelsWithoutSpaces.indexOf(label);
-                        if (labelIndex !== -1)
-                            videoQualityLabels.push(possibleLables[labelIndex] as VideoQualityLabel);
-                        else
+                        if (labelIndex !== -1) {
+                            if (!videoQualityLabels.includes(possibleLables[labelIndex] as VideoQualityLabel))
+                                videoQualityLabels.push(possibleLables[labelIndex] as VideoQualityLabel);
+                            else
+                                msg.sendErrorMessage('Bad config file (video quality labels duplicate)!');
+                        } else
                             msg.sendErrorMessage('Bad config file (video quality labels)!');
                     });
                     config.videoQuality = videoQualityLabels;
