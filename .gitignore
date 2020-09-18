@@ -95,3 +95,4 @@ typings/
 renderer/public/electron.js
 renderer/public/helpers.js
 renderer/public/defaultConfig.js
+renderer/public/defaultConfigText.js
