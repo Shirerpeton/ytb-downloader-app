@@ -198,11 +198,6 @@ const loadConfig = async (msg: Messages): Promise<AppConfig> => {
     try {
         await fs.promises.access(configFile);
     } catch (_) {
-        let data: string = '';
-        for (const [key, value] of Object.entries(defaultConfig)) {
-            if ((key !== 'audioFormats') && (key !== 'videoFormats'))
-                data += `${key}: ${value}\n`
-        }
         fs.promises.writeFile(configFile, defaultConfigText);
         return defaultConfig;
     }

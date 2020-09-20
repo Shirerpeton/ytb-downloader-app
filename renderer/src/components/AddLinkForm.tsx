@@ -109,6 +109,7 @@ const AddLinkForm: React.FC<AddLinkFormProps> = (props) => {
                 extension = props.config.defaultAudioFormat;
             if (extension !== '')
                 props.setVideos(oldVideos => [...oldVideos, {info: infoOrNull, audioFormat, videoFormat, extension, audioFormats, videoFormats, status: 'wait'}]);
+            props.setLink('');
         }
         props.setIsGettingInfo(false);
     }
@@ -116,7 +117,7 @@ const AddLinkForm: React.FC<AddLinkFormProps> = (props) => {
     return (
         <LinkForm onSubmit={handleSubmitInfo}>
             <LinkInputContainer>
-                <LinkInput type='text' id='link' value={props.link} onChange={(event) => { if (!props.isGettingInfo) setError(''); props.setLink(event.target.value); }} gettingInfo={props.isGettingInfo} error={error} placeholder='Youtube link' />
+                <LinkInput type='text' id='link' value={props.link} onChange={(event) => { if (!props.isGettingInfo) setError(''); props.setLink(event.target.value); }} gettingInfo={props.isGettingInfo} error={error} placeholder='Youtube link' onFocus={event => event.target.select()}/>
                 {error !== '' ? <Error>{error}</Error> : null}
             </LinkInputContainer>
             <SubmitButton type='submit' value='Add' disabled={props.isGettingInfo} />

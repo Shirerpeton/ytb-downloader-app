@@ -100,6 +100,7 @@ const LinkFormComponent: React.FC<LinkFormProps> = (props: LinkFormProps) => {
       const {audioFormat, videoFormat} = utils.getDefaultFormats(audioFormats, videoFormats, props.config);
       props.selectTrack('audio')(audioFormat);
       props.selectTrack('video')(videoFormat);
+      props.setLink('');
     }
     props.setIsGettingInfo(false);
   }
@@ -113,7 +114,7 @@ const LinkFormComponent: React.FC<LinkFormProps> = (props: LinkFormProps) => {
   return (
     <LinkForm onSubmit={handleSubmitInfo}>
       <LinkInputContainer>
-        <LinkInput type='text' id='link' value={props.link} onChange={handleChange} gettingInfo={props.isGettingInfo} error={error} placeholder='Youtube link' />
+        <LinkInput type='text' id='link' value={props.link} onChange={handleChange} gettingInfo={props.isGettingInfo} error={error} placeholder='Youtube link' onFocus={event => event.target.select()}/>
         {error !== '' ? <Error>{error}</Error> : null}
       </LinkInputContainer>
       <SubmitButton type='submit' value='Get info' disabled={props.isGettingInfo} />
