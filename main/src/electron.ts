@@ -2,7 +2,7 @@ import { BrowserWindow, app, ipcMain, IpcMainInvokeEvent } from 'electron';
 import isDev from "electron-is-dev";;
 import path from 'path';
 import helpers from './helpers.js';
-import ytdl from 'ytdl-core';
+import ytdl, { videoInfo } from 'ytdl-core';
 
 import { AppConfig, Messages } from '../types/types.js';
 
@@ -49,7 +49,12 @@ function createWindow() {
     const msg: Messages = {sendStatusMessage: sendMessage('status-line-message'), sendProgressMessage: sendMessage('progress-bar-progress'), sendErrorMessage, sendProgressToggle: sendMessage('progress-bar-toggle')};
 
     ipcMain.handle('getInfo', async (_: IpcMainInvokeEvent, link: string): Promise<ytdl.videoInfo | null> => {
-        return await helpers.getInfo(link);
+        const result: videoInfo | null = await helpers.getInfo(link);
+        if (result !== null) {
+            msg.sendProgressMessage(0);
+            msg.sendStatusMessage('---')
+        }
+        return result;
     });
 
     ipcMain.handle('detectFfmpeg', async (_: IpcMainInvokeEvent, path: string): Promise<boolean> => {
