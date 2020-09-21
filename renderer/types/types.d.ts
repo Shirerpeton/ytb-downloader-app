@@ -6,7 +6,7 @@ export type VideoQualityLabel = '144p' | '144p 15fps' | '144p60 HDR' | '240p' | 
 | '1440p60' | '1440p60 HDR' | '2160p' | '2160p60' | '2160p60 HDR' | '4320p' | '4320p60';
 
 export interface AppConfig {
-    [string]: any,
+    [string]: any, /* eslint-disable-line @typescript-eslint/no-explicit-any*/
     ffmpegPath: string,
     outputDir: string,
     audioFormats: string[],

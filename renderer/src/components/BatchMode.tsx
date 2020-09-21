@@ -76,31 +76,30 @@ interface BatchModeProps {
     ipcRenderer: IpcRenderer,
     isGettingInfo: boolean,
     setIsGettingInfo: React.Dispatch<React.SetStateAction<boolean>>,
-    isProcessing: boolean,
     setIsProcessing: React.Dispatch<React.SetStateAction<boolean>>
 }
 
-const BatchMode: React.FC<BatchModeProps> = (props) => {
+const BatchMode: React.FC<BatchModeProps> = ({config, ipcRenderer, isGettingInfo, setIsGettingInfo, setIsProcessing}: BatchModeProps) => {
     const [videos, setVideos] = useState<Video[]>([]);
     const [link, setLink] = useState<string>('');
 
     const startProcessing = async (): Promise<void> => {
         if (videos.length === 0)
             return;
-        props.setIsProcessing(true);
-        let processingIds: number[] = [];
+        setIsProcessing(true);
+        const processingIds: number[] = [];
         const promises: Promise<number>[] = (videos.map((video, index): Promise<number> | null=> {
             const actualAudioFormat: ytdl.videoFormat | null = (video.audioFormat === 0) ? null : video.audioFormats[video.audioFormat - 1];
             const actualVideoFormat: ytdl.videoFormat | null = (video.videoFormat === 0) ? null : video.videoFormats[video.videoFormat - 1];
             if (video.status === 'wait') {
                 processingIds.push(index);
-                return props.ipcRenderer.invoke('process', video.info, actualAudioFormat, actualVideoFormat, video.extension, props.config, index);
+                return ipcRenderer.invoke('process', video.info, actualAudioFormat, actualVideoFormat, video.extension, config, index);
             } else return null;
         }).filter(elem => elem !== null) as unknown as Promise<number>[]);
         setVideos(oldVideos => oldVideos.map((video: Video): Video => ({ ...video, status: video.status === 'wait' ? 'processing' : video.status })));
         const processedIds: number[] = await Promise.all(promises);
         setVideos(oldVideos => oldVideos.map((video, index): Video => ({ ...video, status: (video.status === 'processing' && processedIds.includes(index) ? 'done' : video.status) })));
-        props.setIsProcessing(false);
+        setIsProcessing(false);
     }
 
     return (
@@ -114,16 +113,16 @@ const BatchMode: React.FC<BatchModeProps> = (props) => {
                 {videos.map((video, index) => (<Row key={index}>
                     <Title done={video.status === 'done'}>{video.info.videoDetails.title}</Title>
                     <Status>
-                        <StatusLine ipcRenderer={props.ipcRenderer} index={index} />
+                        <StatusLine ipcRenderer={ipcRenderer} index={index} />
                     </Status>
                     <Progress>
-                        <ProgressBar ipcRenderer={props.ipcRenderer} index={index} />
+                        <ProgressBar ipcRenderer={ipcRenderer} index={index} />
                     </Progress>
                 </Row>))}
             </VideoList>
-            <AddLinkForm ipcRenderer={props.ipcRenderer} config={props.config} link={link} setLink={setLink} isGettingInfo={props.isGettingInfo} setIsGettingInfo={props.setIsGettingInfo} setVideos={setVideos} videos={videos} />
+            <AddLinkForm ipcRenderer={ipcRenderer} config={config} link={link} setLink={setLink} isGettingInfo={isGettingInfo} setIsGettingInfo={setIsGettingInfo} setVideos={setVideos} videos={videos} />
             <Br />
-            <Start onClick={startProcessing} disabled={props.isGettingInfo}>Start</Start>
+            <Start onClick={startProcessing} disabled={isGettingInfo}>Start</Start>
         </React.Fragment>
     );
 }

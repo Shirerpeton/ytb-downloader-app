@@ -39,25 +39,25 @@ interface ProgressBarProps {
     index?: number
 }
 
-const ProgressBar: React.FC<ProgressBarProps> = (props) => {
+const ProgressBar: React.FC<ProgressBarProps> = ({ ipcRenderer, index }: ProgressBarProps) => {
     const [isActive, setIsActive] = useState<boolean>(false);
     const [progress, setProgress] = useState<number>(0);
 
     useEffect(() => {
-        const progressChannel: string = props.index === undefined? 'progress-bar-progress' : 'progress-bar-progress-' + String(props.index);
-        const toggleChannel: string = props.index === undefined? 'progress-bar-toggle' : 'progress-bar-toggle-' + String(props.index);
-        props.ipcRenderer.on(progressChannel, (_: IpcRendererEvent, data: number) => {
+        const progressChannel: string = index === undefined? 'progress-bar-progress' : 'progress-bar-progress-' + String(index);
+        const toggleChannel: string = index === undefined? 'progress-bar-toggle' : 'progress-bar-toggle-' + String(index);
+        ipcRenderer.on(progressChannel, (_: IpcRendererEvent, data: number) => {
             setProgress(data);
         });
-        props.ipcRenderer.on(toggleChannel, (_: IpcRendererEvent, data: boolean) => {
+        ipcRenderer.on(toggleChannel, (_: IpcRendererEvent, data: boolean) => {
             setIsActive(data);
         });
 
         return () => {
-            props.ipcRenderer.removeAllListeners(progressChannel);
-            props.ipcRenderer.removeAllListeners(toggleChannel);
+            ipcRenderer.removeAllListeners(progressChannel);
+            ipcRenderer.removeAllListeners(toggleChannel);
         };
-    }, [props.ipcRenderer, props.index]);
+    }, [ipcRenderer, index]);
 
     return (
         <Bar width={progress} isActive={isActive}>{progress + '%'}</Bar>

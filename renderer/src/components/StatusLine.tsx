@@ -16,19 +16,19 @@ interface StatusLineProps {
     index?: number
 }
 
-const StatusLine: React.FC<StatusLineProps> = (props) => {
+const StatusLine: React.FC<StatusLineProps> = ({ipcRenderer, index}: StatusLineProps) => {
     const [status, setStatus] = useState<string>('---');
 
     useEffect(() => {
-        const messageChannel: string = props.index === undefined ? 'status-line-message' : 'status-line-message-' + String(props.index);
-        props.ipcRenderer.on(messageChannel, (_: IpcRendererEvent, status: string) => {
+        const messageChannel: string = index === undefined ? 'status-line-message' : 'status-line-message-' + String(index);
+        ipcRenderer.on(messageChannel, (_: IpcRendererEvent, status: string) => {
             setStatus(status);
         });
 
         return () => {
-            props.ipcRenderer.removeAllListeners(messageChannel);
+            ipcRenderer.removeAllListeners(messageChannel);
         };
-    }, [props.ipcRenderer, props.index]);
+    }, [ipcRenderer, index]);
 
     return (
         <Status>{status}</Status>

@@ -16,7 +16,7 @@ const audioQualityText = (quality: string): string => {
 }
 
 const lengthIntoText = (totalSecondsString: string): string => {
-  const secondsNumber: number = Number(totalSecondsString);
+  const secondsNumber = Number(totalSecondsString);
   const hours: number = Math.floor(secondsNumber / 3600);
   const hoursString: string = ((hours < 10) ? '0' : '') + String(hours);
   const minutes: number = Math.floor((secondsNumber - (hours * 3600)) / 60);
@@ -48,11 +48,11 @@ const getVideoFormatNames = (ytbVideoInfo: YtbVideoInfo): string[] => {
   return videoFormatsNames;
 }
 
-const getAudioFormats = (formats: ytdl.videoFormat[]) => {
+const getAudioFormats = (formats: ytdl.videoFormat[]): ytdl.videoFormat[] => {
   return ytdl.filterFormats(formats, 'audioonly');
 }
 
-const getVideoFormats = (formats: ytdl.videoFormat[]) => {
+const getVideoFormats = (formats: ytdl.videoFormat[]): ytdl.videoFormat[] => {
   return ytdl.filterFormats(formats, 'videoonly');
 }
 
@@ -92,7 +92,7 @@ const getDefaultFormats = (audioFormats: ytdl.videoFormat[], videoFormats: ytdl.
   }
   if (config.highestQuality) {
     audioFormat = getFromatByQuality(audioFormats, 'highestaudio') + 1;
-    videoFormat = getFromatByQuality(videoFormats, 'highestvideo') + 1;;
+    videoFormat = getFromatByQuality(videoFormats, 'highestvideo') + 1;
   }
   if (config.noAudio)
     audioFormat = 0

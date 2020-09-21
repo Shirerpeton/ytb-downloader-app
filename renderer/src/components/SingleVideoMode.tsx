@@ -79,7 +79,7 @@ interface SingleVideoModeProps {
     setIsProcessing: React.Dispatch<React.SetStateAction<boolean>>
 }
 
-const SingleVideoMode: React.FC<SingleVideoModeProps> = (props) => {
+const SingleVideoMode: React.FC<SingleVideoModeProps> = ({config, ipcRenderer, isGettingInfo, setIsGettingInfo, isProcessing, setIsProcessing}: SingleVideoModeProps) => {
     const [link, setLink] = useState<string>('');
     const [ytbVideoInfo, setYtbVideoInfo] = useState<YtbVideoInfo | null>(null);
     const [audioFormat, setAudioFormat] = useState<number>(0);
@@ -94,7 +94,7 @@ const SingleVideoMode: React.FC<SingleVideoModeProps> = (props) => {
                     setFileType(null);
             } else {
                 if ((audioFormat === 0) && (videoFormat === 0))
-                    setFileType({ type: 'audio', extension: props.config.defaultAudioFormat });
+                    setFileType({ type: 'audio', extension: config.defaultAudioFormat });
             }
             setAudioFormat(newAudioFormat);
         };
@@ -104,10 +104,10 @@ const SingleVideoMode: React.FC<SingleVideoModeProps> = (props) => {
                 if (audioFormat === 0)
                     setFileType(null);
                 else
-                    setFileType({ type: 'audio', extension: props.config.defaultAudioFormat });
+                    setFileType({ type: 'audio', extension: config.defaultAudioFormat });
             } else {
                 if (videoFormat === 0)
-                    setFileType({ type: 'video', extension: props.config.defaultVideoFormat });
+                    setFileType({ type: 'video', extension: config.defaultVideoFormat });
             }
             setVideoFormat(newVideoFormat);
         };
@@ -120,15 +120,15 @@ const SingleVideoMode: React.FC<SingleVideoModeProps> = (props) => {
         const actualAudioFormat: ytdl.videoFormat | null = (audioFormat === 0) ? null : ytbVideoInfo.audioFormats[audioFormat - 1];
         const actualVideoFormat: ytdl.videoFormat | null = (videoFormat === 0) ? null : ytbVideoInfo.videoFormats[videoFormat - 1];
         if (fileType !== null) {
-            props.setIsProcessing(true);
-            await props.ipcRenderer.invoke('process', ytbVideoInfo.info, actualAudioFormat, actualVideoFormat, fileType.extension, props.config);
-            props.setIsProcessing(false);
+            setIsProcessing(true);
+            await ipcRenderer.invoke('process', ytbVideoInfo.info, actualAudioFormat, actualVideoFormat, fileType.extension, config);
+            setIsProcessing(false);
         }
     }
 
     return (
         <React.Fragment>
-            <LinkForm link={link} setLink={setLink} isGettingInfo={props.isGettingInfo} setIsGettingInfo={props.setIsGettingInfo} setYtbVideoInfo={setYtbVideoInfo} ipcRenderer={props.ipcRenderer} config={props.config} selectTrack={selectTrack}/>
+            <LinkForm link={link} setLink={setLink} isGettingInfo={isGettingInfo} setIsGettingInfo={setIsGettingInfo} setYtbVideoInfo={setYtbVideoInfo} ipcRenderer={ipcRenderer} config={config} selectTrack={selectTrack}/>
             <Br />
             <Section>
                 <SectionTitle>Video Info</SectionTitle>
@@ -141,13 +141,13 @@ const SingleVideoMode: React.FC<SingleVideoModeProps> = (props) => {
                 <SectionTitle>Track Selection</SectionTitle>
                 <SelectRow>
                     <SmallLabel>Audio Track:</SmallLabel>
-                    <Selector value={audioFormat} onChange={event => { if (!props.isProcessing && !props.isGettingInfo) selectTrack('audio')(Number(event.target.value)) }} disabled={props.isProcessing || props.isGettingInfo}>
+                    <Selector value={audioFormat} onChange={event => { if (!isProcessing && !isGettingInfo) selectTrack('audio')(Number(event.target.value)) }} disabled={isProcessing || isGettingInfo}>
                         {ytbVideoInfo ? utils.getAudioFormatNames(ytbVideoInfo).map((format: string, index: number) => <option value={index} key={index}>{format}</option>) : null}
                     </Selector>
                 </SelectRow>
                 <SelectRow>
                     <SmallLabel>Video Track:</SmallLabel>
-                    <Selector value={videoFormat} onChange={event => { if (!props.isProcessing && !props.isGettingInfo) selectTrack('video')(Number(event.target.value)) }} disabled={props.isProcessing || props.isGettingInfo}>
+                    <Selector value={videoFormat} onChange={event => { if (!isProcessing && !isGettingInfo) selectTrack('video')(Number(event.target.value)) }} disabled={isProcessing || isGettingInfo}>
                         {ytbVideoInfo ? utils.getVideoFormatNames(ytbVideoInfo).map((format: string, index: number) => <option value={index} key={index}>{format}</option>) : null}
                     </Selector>
                 </SelectRow>
@@ -157,19 +157,19 @@ const SingleVideoMode: React.FC<SingleVideoModeProps> = (props) => {
                 <SectionTitle>Convert</SectionTitle>
                 <SelectRow>
                     <SmallLabel>Format: </SmallLabel>
-                    <Selector value={fileType ? fileType.extension : ''} onChange={({ target: { value } }) => { if (!props.isProcessing && !props.isGettingInfo) setFileType(oldFileType => oldFileType ? { type: oldFileType.type, extension: value } : null) }} disabled={props.isProcessing || props.isGettingInfo}>
+                    <Selector value={fileType ? fileType.extension : ''} onChange={({ target: { value } }) => { if (!isProcessing && !isGettingInfo) setFileType(oldFileType => oldFileType ? { type: oldFileType.type, extension: value } : null) }} disabled={isProcessing || isGettingInfo}>
                         {ytbVideoInfo && fileType ?
                             (fileType.type === 'video' ?
-                                props.config.videoFormats.map((format: string, index: number) => <option value={format} key={index}>{format}</option>) :
-                                props.config.audioFormats.map((format: string, index: number) => <option value={format} key={index}>{format}</option>))
+                                config.videoFormats.map((format: string, index: number) => <option value={format} key={index}>{format}</option>) :
+                                config.audioFormats.map((format: string, index: number) => <option value={format} key={index}>{format}</option>))
                             : null}
                     </Selector>
                 </SelectRow>
-                <ProgressBar ipcRenderer={props.ipcRenderer} />
+                <ProgressBar ipcRenderer={ipcRenderer} />
                 <Space />
-                <StatusLine ipcRenderer={props.ipcRenderer} />
+                <StatusLine ipcRenderer={ipcRenderer} />
                 <Space />
-                <Start onClick={startProcessing} disabled={props.isProcessing || props.isGettingInfo}>Start</Start>
+                <Start onClick={startProcessing} disabled={isProcessing || isGettingInfo}>Start</Start>
             </Section>
         </React.Fragment>
     );

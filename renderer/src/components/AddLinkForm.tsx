@@ -41,7 +41,7 @@ interface AddLinkFormProps {
     readonly videos: Video[]
 }
 
-const AddLinkForm: React.FC<AddLinkFormProps> = ({link, setLink, ipcRenderer, config, isGettingInfo, setIsGettingInfo, setVideos, videos}) => {
+const AddLinkForm: React.FC<AddLinkFormProps> = ({link, setLink, ipcRenderer, config, isGettingInfo, setIsGettingInfo, setVideos, videos}: AddLinkFormProps) => {
 
     const [error, setError] = useState<string>('');
 

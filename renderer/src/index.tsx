@@ -6,7 +6,7 @@ import { createGlobalStyle, ThemeProvider, DefaultTheme } from 'styled-component
 
 declare global {
   interface Window {
-    require: any;
+    require: any; /* eslint-disable-line @typescript-eslint/no-explicit-any*/
   }
 }
 

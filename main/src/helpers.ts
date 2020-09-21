@@ -51,8 +51,8 @@ interface downloadFunc {
 }
 
 const download: downloadFunc = async (info, audioFormat, videoFormat, msg) => {
-    const title: string = (info.videoDetails.title).replace(/[\<\>\:\"\/\\\/\|\?\*]/g, '_');
-    let audioFileName: string = '';
+    const title: string = (info.videoDetails.title).replace(/[<>:"/\\/|?*]/g, '_');
+    let audioFileName = '';
 
     await fs.promises.mkdir(tempDir, { recursive: true });
 
@@ -71,7 +71,7 @@ const download: downloadFunc = async (info, audioFormat, videoFormat, msg) => {
     }
 
     //video download
-    let videoFileName: string = '';
+    let videoFileName = '';
     if (videoFormat) {
         videoFileName = 'video_' + title + '.' + videoFormat.container;
         const videoStream = ytdl.downloadFromInfo(info, { format: videoFormat });
@@ -109,7 +109,7 @@ interface ConvertFunc {
 }
 
 const convert: ConvertFunc = async (info, audioFormat, videoFormat, audioFileName, videoFileName, selectedFormat, msg, config) => {
-    const title: string = (info.videoDetails.title).replace(/[\<\>\:\"\/\\\/\|\?\*]/g, '_');
+    const title: string = (info.videoDetails.title).replace(/[<>:"/\\/|?*]/g, '_');
     ffmpeg.setFfmpegPath(config.ffmpegPath);
     await fs.promises.mkdir(config.outputDir, { recursive: true });
 
@@ -118,7 +118,7 @@ const convert: ConvertFunc = async (info, audioFormat, videoFormat, audioFileNam
         const query = ffmpeg().input(tempDir + videoFileName).videoCodec('libx264');
         let outputOptions = ['-metadata:s:v:0 language='];
         if (audioFormat) {
-            let audioBitrate: string = '128k';
+            let audioBitrate = '128k';
             if (audioFormat.audioBitrate) {
                 if (audioFormat.audioBitrate <= 64)
                     audioBitrate = '64k';
@@ -147,17 +147,22 @@ const convert: ConvertFunc = async (info, audioFormat, videoFormat, audioFileNam
     } else if (audioFormat) {
         //audio only
         const query = ffmpeg().input(tempDir + audioFileName).noVideo();
-        let audioBitrate: string = '128k';
-        let audioQuality: string = '-q:a 1';
+        let audioBitrate = '128k';
+        let audioQuality = '-q:a 1';
         if (audioFormat.audioBitrate) {
-            if (audioFormat.audioBitrate <= 64)
+            if (audioFormat.audioBitrate <= 64) {
                 audioQuality = '-q:a 8';
-            else if (audioFormat.audioBitrate <= 128)
+                audioBitrate = '64k';
+            } else if (audioFormat.audioBitrate <= 128) {
                 audioQuality = '-q:a 5';
-            else if (audioFormat.audioBitrate <= 160)
+                audioBitrate = '128k';
+            } else if (audioFormat.audioBitrate <= 160) {
                 audioQuality = '-q:a 2';
-            else if (audioFormat.audioBitrate <= 256)
+                audioBitrate = '160k';
+            } else if (audioFormat.audioBitrate <= 256) {
                 audioQuality = '-q:a 0';
+                audioBitrate = '256k';
+            }
         }
         if (selectedFormat === 'aac')
             query.audioCodec('aac').audioBitrate(audioBitrate).output(config.outputDir + title + '.' + selectedFormat).outputOptions(['-profile:v high', '-level:v 4.0', '-metadata:s:a:0 language=']);
@@ -202,9 +207,9 @@ const loadConfig = async (msg: Messages): Promise<AppConfig> => {
         return defaultConfig;
     }
     const data = await fs.promises.readFile(configFile);
-    let config: AppConfig = { ...defaultConfig };
+    const config: AppConfig = { ...defaultConfig };
     const lines: string[] = data.toString().split('\n');
-    for (let line of lines) {
+    for (const line of lines) {
         if (line[0] === '#')
             continue;
         const pair: string[] = line.split(':').map(param => param.replace(/ /g, ''));
@@ -214,7 +219,7 @@ const loadConfig = async (msg: Messages): Promise<AppConfig> => {
             msg.sendErrorMessage('Bad config file!');
             return defaultConfig;
         }
-        if (defaultConfig.hasOwnProperty(pair[0])) {
+        if (pair[0] in defaultConfig) {
             if (pair[0] === 'ffmpegPath')
                 config[pair[0]] = pair[1];
             else if (pair[0] === 'outputDir')

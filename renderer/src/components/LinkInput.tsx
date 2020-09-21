@@ -7,7 +7,7 @@ const clipboard = window.require('electron').clipboard;
 interface LinkInputProps {
     readonly gettingInfo: boolean,
     readonly error: string
-};
+}
 
 const LinkInput = styled.input<LinkInputProps>`
   padding: 0.50rem;

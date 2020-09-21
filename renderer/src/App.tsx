@@ -92,7 +92,7 @@ const App: React.FC = () => {
           {(mode === 'single') ?
             <SingleVideoMode config={config} ipcRenderer={ipcRenderer} isGettingInfo={isGettingInfo} setIsGettingInfo={setIsGettingInfo} isProcessing={isProcessing} setIsProcessing={setIsProcessing} />
             :
-            <BatchMode config={config} ipcRenderer={ipcRenderer} isGettingInfo={isGettingInfo} setIsGettingInfo={setIsGettingInfo} isProcessing={isProcessing} setIsProcessing={setIsProcessing} />}
+            <BatchMode config={config} ipcRenderer={ipcRenderer} isGettingInfo={isGettingInfo} setIsGettingInfo={setIsGettingInfo} setIsProcessing={setIsProcessing} />}
         </ModeContainer>
       </ControlsContainer>
     </AppContainer>

@@ -1,5 +1,5 @@
 import { BrowserWindow, app, ipcMain, IpcMainInvokeEvent } from 'electron';
-import isDev from "electron-is-dev";;
+import isDev from "electron-is-dev";
 import path from 'path';
 import helpers from './helpers.js';
 import ytdl, { videoInfo } from 'ytdl-core';
@@ -42,11 +42,11 @@ function createWindow() {
         return (<T>(message: T): void => {
             mainWindow.webContents.send(actualChannel, message);
         });
-    }
+    };
 
     const sendErrorMessage = (error: string): void => {
         mainWindow.webContents.send('error-message', error);
-    }
+    };
     const msg: Messages = { sendStatusMessage: sendMessage('status-line-message'), sendProgressMessage: sendMessage('progress-bar-progress'), sendErrorMessage, sendProgressToggle: sendMessage('progress-bar-toggle') };
 
     ipcMain.handle('getInfo', async (_: IpcMainInvokeEvent, link: string): Promise<ytdl.videoInfo | null> => {
@@ -61,8 +61,7 @@ function createWindow() {
     ipcMain.handle('detectFfmpeg', async (_: IpcMainInvokeEvent, path: string): Promise<boolean> => {
         return await helpers.detectFfmpeg(msg, path);
     });
-
-    ipcMain.handle('getConfig', async (_: IpcMainInvokeEvent): Promise<AppConfig> => {
+    ipcMain.handle('getConfig', async (): Promise<AppConfig> => {
         return await helpers.loadConfig(msg);
     });
 
