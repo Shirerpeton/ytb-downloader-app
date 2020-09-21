@@ -3,41 +3,11 @@ import styled from 'styled-components';
 import ytdl from 'ytdl-core'
 import { IpcRenderer } from 'electron';
 
+import LinkInputComponent from './LinkInput';
+
 import { AppConfig, Video } from '../../types/types.js';
 import utils from '../utils';
 
-interface LinkInputProps {
-    readonly gettingInfo: boolean,
-    readonly error: string
-};
-
-const LinkInput = styled.input<LinkInputProps>`
-  padding: 0.50rem;
-  background-color: ${props => props.theme.colors.backgroundSecondary};
-  color: ${props => !props.gettingInfo ? props.theme.colors.primary : props.theme.colors.secondary};
-  border: 1px solid ${props => props.theme.colors.border};
-  border-radius: 0.25rem;
-  width: 25rem;
-  border-bottom-right-radius: 0;
-  border-top-right-radius: 0;
-  border-right: 0;
-  font-size: 1.25rem;
-  ${props => props.error !== '' ?
-        'border: 1px solid' + props.theme.colors.error + '};'
-        :
-        null}
-  &:focus {
-    outline: none;
-    border: 1px solid ${props => props.theme.colors.borderSecondary};
-  }
-  &:after {
-    content: ${props => props.error};
-  }
-`
-
-const Error = styled.span`
-    color: ${props => props.theme.colors.error};
-`
 
 const SubmitButton = styled.input`
   background-color: ${props => props.theme.colors.backgroundSecondary};
@@ -60,13 +30,6 @@ const LinkForm = styled.form`
   justify-content: center;
 `
 
-const LinkInputContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-`
-
 interface AddLinkFormProps {
     readonly link: string,
     readonly setLink: React.Dispatch<React.SetStateAction<string>>,
@@ -78,49 +41,46 @@ interface AddLinkFormProps {
     readonly videos: Video[]
 }
 
-const AddLinkForm: React.FC<AddLinkFormProps> = (props) => {
+const AddLinkForm: React.FC<AddLinkFormProps> = ({link, setLink, ipcRenderer, config, isGettingInfo, setIsGettingInfo, setVideos, videos}) => {
 
     const [error, setError] = useState<string>('');
 
     const handleSubmitInfo = async (event: React.SyntheticEvent): Promise<void> => {
         event.preventDefault();
-        if (props.link === '') {
+        if (link === '') {
           setError('Provide url fot youtube video');
           return;
         }
-        props.setIsGettingInfo(true);
-        const infoOrNull: ytdl.videoInfo | null = await props.ipcRenderer.invoke('getInfo', props.link);
+        setIsGettingInfo(true);
+        const infoOrNull: ytdl.videoInfo | null = await ipcRenderer.invoke('getInfo', link);
         if (infoOrNull === null)
             setError('Invalid url for youtube video');
         else {
-            const videoIds: string[] = props.videos.map(video => video.info.videoDetails.videoId);
+            const videoIds: string[] = videos.map(video => video.info.videoDetails.videoId);
             if (videoIds.includes(infoOrNull.videoDetails.videoId)) {
                 setError('Video is already on the list');
-                props.setIsGettingInfo(false);
+                setIsGettingInfo(false);
                 return;
             }
             const audioFormats: ytdl.videoFormat[] = utils.getAudioFormats(infoOrNull.formats);
             const videoFormats: ytdl.videoFormat[] = utils.getVideoFormats(infoOrNull.formats);
-            const {audioFormat, videoFormat} = utils.getDefaultFormats(audioFormats, videoFormats, props.config);
+            const {audioFormat, videoFormat} = utils.getDefaultFormats(audioFormats, videoFormats, config);
             let extension: string = '';
             if (videoFormat !== 0)
-                extension = props.config.defaultVideoFormat;
+                extension = config.defaultVideoFormat;
             else if (audioFormat !== 0)
-                extension = props.config.defaultAudioFormat;
+                extension = config.defaultAudioFormat;
             if (extension !== '')
-                props.setVideos(oldVideos => [...oldVideos, {info: infoOrNull, audioFormat, videoFormat, extension, audioFormats, videoFormats, status: 'wait'}]);
-            props.setLink('');
+                setVideos(oldVideos => [...oldVideos, {info: infoOrNull, audioFormat, videoFormat, extension, audioFormats, videoFormats, status: 'wait'}]);
+            setLink('');
         }
-        props.setIsGettingInfo(false);
+        setIsGettingInfo(false);
     }
 
     return (
         <LinkForm onSubmit={handleSubmitInfo}>
-            <LinkInputContainer>
-                <LinkInput type='text' id='link' value={props.link} onChange={(event) => { if (!props.isGettingInfo) setError(''); props.setLink(event.target.value); }} gettingInfo={props.isGettingInfo} error={error} placeholder='Youtube link' onFocus={event => event.target.select()}/>
-                {error !== '' ? <Error>{error}</Error> : null}
-            </LinkInputContainer>
-            <SubmitButton type='submit' value='Add' disabled={props.isGettingInfo} />
+            <LinkInputComponent  link={link} setLink={setLink} isGettingInfo={isGettingInfo} error={error} setError={setError} />
+            <SubmitButton type='submit' value='Add' disabled={isGettingInfo} />
         </LinkForm>
     );
 }
