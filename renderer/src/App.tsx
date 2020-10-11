@@ -37,7 +37,7 @@ const ModeButtons = styled.div`
 `
 
 interface ModeButtonProps {
-  selected: boolean
+  readonly selected: boolean
 }
 const ModeButton = styled.button<ModeButtonProps>`
   background-color: ${props => props.selected ? props.theme.colors.backgroundSecondary : props.theme.colors.background};

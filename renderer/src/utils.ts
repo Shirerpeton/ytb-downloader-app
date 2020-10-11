@@ -1,4 +1,4 @@
-import ytdl from 'ytdl-core'
+import ytdl from 'ytdl-core';
 
 import { AppConfig, AudioQualityLabel, VideoQualityLabel, YtbVideoInfo } from "../types/types.js";
 

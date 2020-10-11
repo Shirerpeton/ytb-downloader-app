@@ -1,7 +1,7 @@
 //import ytdl from 'ytdl-core';
 import stream from 'stream';
 import fs from 'fs';
-import ffmpeg from 'fluent-ffmpeg';
+import ffmpeg, { FfmpegCommand } from 'fluent-ffmpeg';
 import ytdl from 'ytdl-core';
 
 import { AppConfig, VideoQualityLabel, AudioQualityLabel, Messages } from '../types/types.js';
@@ -113,9 +113,11 @@ const convert: ConvertFunc = async (info, audioFormat, videoFormat, audioFileNam
     ffmpeg.setFfmpegPath(config.ffmpegPath);
     await fs.promises.mkdir(config.outputDir, { recursive: true });
 
+    let query: FfmpegCommand = ffmpeg();
+    
     if (videoFormat) {
         //if video is present
-        const query = ffmpeg().input(tempDir + videoFileName).videoCodec('libx264');
+        query = query.input(tempDir + videoFileName).videoCodec('libx264');
         let outputOptions = ['-metadata:s:v:0 language='];
         if (audioFormat) {
             let audioBitrate = '128k';
@@ -133,20 +135,9 @@ const convert: ConvertFunc = async (info, audioFormat, videoFormat, audioFileNam
             outputOptions = [...outputOptions, '-profile:v high', '-level:v 4.0', '-metadata:s:a:0 language='];
         }
         query.output(config.outputDir + title + '.' + selectedFormat).outputOptions(outputOptions);
-        query.on('error', err => {
-            console.log('An error occurred: ' + err.message)
-        });
-        query.on('start', () => {
-            msg.sendProgressMessage(0);
-        });
-        query.on('progress', progress => {
-            msg.sendProgressMessage(Math.floor(progress.percent));
-        });
-        await convertFiles(query);
-        msg.sendProgressMessage(100);
     } else if (audioFormat) {
         //audio only
-        const query = ffmpeg().input(tempDir + audioFileName).noVideo();
+        query = query.input(tempDir + audioFileName).noVideo();
         let audioBitrate = '128k';
         let audioQuality = '-q:a 1';
         if (audioFormat.audioBitrate) {
@@ -167,19 +158,20 @@ const convert: ConvertFunc = async (info, audioFormat, videoFormat, audioFileNam
         if (selectedFormat === 'aac')
             query.audioCodec('aac').audioBitrate(audioBitrate).output(config.outputDir + title + '.' + selectedFormat).outputOptions(['-profile:v high', '-level:v 4.0', '-metadata:s:a:0 language=']);
         else (selectedFormat === 'mp3')
-        query.audioCodec('libmp3lame').output(config.outputDir + title + '.' + selectedFormat).outputOptions([audioQuality]);
-        query.on('error', err => {
-            console.log('An error occurred: ' + err.message)
-        });
-        query.on('start', () => {
-            msg.sendProgressMessage(0);
-        });
-        query.on('progress', progress => {
-            msg.sendProgressMessage(Math.floor(progress.percent));
-        });
-        await convertFiles(query);
-        msg.sendProgressMessage(100);
+            query.audioCodec('libmp3lame').output(config.outputDir + title + '.' + selectedFormat).outputOptions([audioQuality]);
     }
+
+    query.on('error', err => {
+        console.log('An error occurred: ' + err.message)
+    });
+    query.on('start', () => {
+        msg.sendProgressMessage(0);
+    });
+    query.on('progress', progress => {
+        msg.sendProgressMessage(Math.floor(progress.percent));
+    });
+    await convertFiles(query);
+    msg.sendProgressMessage(100);
 }
 
 const cleanUp = async (audioFileName: string, videoFileName: string): Promise<void> => {
@@ -260,8 +252,8 @@ const loadConfig = async (msg: Messages): Promise<AppConfig> => {
             } else if (pair[0] === 'videoQuality') {
                 if (pair[1].length !== 0) {
                     const possibleLables: string[] = ['144p', '144p 15fps', '144p60 HDR', '240p', '240p60 HDR', '270p', '360p', '360p60 HDR',
-                    '480p', '480p60 HDR', '720p', '720p60', '720p60 HDR', '1080p', '1080p60', '1080p60 HDR', '1440p',
-                    '1440p60', '1440p60 HDR', '2160p', '2160p60', '2160p60 HDR', '4320p', '4320p60'];
+                        '480p', '480p60 HDR', '720p', '720p60', '720p60 HDR', '1080p', '1080p60', '1080p60 HDR', '1440p',
+                        '1440p60', '1440p60 HDR', '2160p', '2160p60', '2160p60 HDR', '4320p', '4320p60'];
                     const labelsWithoutSpaces: string[] = possibleLables.map(label => label.replace(/ /g, ''));
                     const videoQualityLabelCandidates: string[] = pair[1].split(',');
                     const videoQualityLabels: VideoQualityLabel[] = [];

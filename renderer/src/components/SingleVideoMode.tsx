@@ -6,9 +6,9 @@ import ytdl from 'ytdl-core';
 import { AppConfig, FileType, YtbVideoInfo } from '../../types/types.js';
 import utils from '../utils';
 
-import LinkForm from './LinkForm'
-import ProgressBar from './ProgressBar'
-import StatusLine from './StatusLine'
+import LinkForm from './LinkForm';
+import ProgressBar from './ProgressBar';
+import StatusLine from './StatusLine';
 
 
 const SectionTitle = styled.h3`
@@ -71,12 +71,12 @@ const Space = styled.div`
 `
 
 interface SingleVideoModeProps {
-    config: AppConfig,
-    ipcRenderer: IpcRenderer,
-    isGettingInfo: boolean,
-    setIsGettingInfo: React.Dispatch<React.SetStateAction<boolean>>,
-    isProcessing: boolean,
-    setIsProcessing: React.Dispatch<React.SetStateAction<boolean>>
+    readonly config: AppConfig,
+    readonly ipcRenderer: IpcRenderer,
+    readonly isGettingInfo: boolean,
+    readonly setIsGettingInfo: React.Dispatch<React.SetStateAction<boolean>>,
+    readonly isProcessing: boolean,
+    readonly setIsProcessing: React.Dispatch<React.SetStateAction<boolean>>
 }
 
 const SingleVideoMode: React.FC<SingleVideoModeProps> = ({config, ipcRenderer, isGettingInfo, setIsGettingInfo, isProcessing, setIsProcessing}: SingleVideoModeProps) => {

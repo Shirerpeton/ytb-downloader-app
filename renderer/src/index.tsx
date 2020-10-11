@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import App from './App';
-import * as serviceWorker from './serviceWorker'
+import * as serviceWorker from './serviceWorker';
 import { createGlobalStyle, ThemeProvider, DefaultTheme } from 'styled-components';
 
 declare global {
@@ -18,7 +18,6 @@ const GlobalStyle = createGlobalStyle`
     font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen,
       Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
     background-color: ${props => props.theme.colors.background};
-    //font-size: 1.1rem;
   }
 
   a {

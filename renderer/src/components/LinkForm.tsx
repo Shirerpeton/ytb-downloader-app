@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
-import ytdl from 'ytdl-core'
+import ytdl from 'ytdl-core';
 import { IpcRenderer } from 'electron';
 
 import LinkInputComponent from './LinkInput';

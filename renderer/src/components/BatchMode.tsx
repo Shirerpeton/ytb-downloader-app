@@ -1,12 +1,12 @@
-import React, { useState } from 'react'
-import styled from 'styled-components'
+import React, { useState } from 'react';
+import styled from 'styled-components';
 
 import { AppConfig, Video } from '../../types/types.js';
 import { IpcRenderer } from 'electron';
 import ytdl from 'ytdl-core';
 
-import AddLinkForm from './AddLinkForm'
-import StatusLine from './StatusLine'
+import AddLinkForm from './AddLinkForm';
+import StatusLine from './StatusLine';
 import ProgressBar from './ProgressBar';
 
 const VideoList = styled.div`
@@ -38,7 +38,7 @@ const Row = styled.div`
     border-bottom: 1px solid ${props => props.theme.colors.border};
 `
 interface TitleProps {
-    done?: boolean
+    readonly done?: boolean
 }
 
 const Title = styled(CenterDiv) <TitleProps>`
@@ -72,11 +72,11 @@ const Start = styled.button`
 `
 
 interface BatchModeProps {
-    config: AppConfig,
-    ipcRenderer: IpcRenderer,
-    isGettingInfo: boolean,
-    setIsGettingInfo: React.Dispatch<React.SetStateAction<boolean>>,
-    setIsProcessing: React.Dispatch<React.SetStateAction<boolean>>
+    readonly config: AppConfig,
+    readonly ipcRenderer: IpcRenderer,
+    readonly isGettingInfo: boolean,
+    readonly setIsGettingInfo: React.Dispatch<React.SetStateAction<boolean>>,
+    readonly setIsProcessing: React.Dispatch<React.SetStateAction<boolean>>
 }
 
 const BatchMode: React.FC<BatchModeProps> = ({config, ipcRenderer, isGettingInfo, setIsGettingInfo, setIsProcessing}: BatchModeProps) => {

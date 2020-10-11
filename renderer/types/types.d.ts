@@ -1,4 +1,4 @@
-import ytdl from 'ytdl-core'
+import ytdl from 'ytdl-core';
 
 export type AudioQualityLabel = '256kbps' | '160kbps' | '128kbps' | '64kbps' | '48kbps';
 export type VideoQualityLabel = '144p' | '144p 15fps' | '144p60 HDR' | '240p' | '240p60 HDR' | '270p' | '360p' | '360p60 HDR'

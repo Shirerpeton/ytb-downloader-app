@@ -8,12 +8,11 @@ const Status = styled.div`
     justify-content: center;
     align-content: center;
     color: ${props => props.theme.colors.primary};
-    //margin: 1rem 0;
 `
 
 interface StatusLineProps {
-    ipcRenderer: IpcRenderer,
-    index?: number
+    readonly ipcRenderer: IpcRenderer,
+    readonly index?: number
 }
 
 const StatusLine: React.FC<StatusLineProps> = ({ipcRenderer, index}: StatusLineProps) => {

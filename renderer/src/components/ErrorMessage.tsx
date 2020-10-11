@@ -21,7 +21,7 @@ const Message = styled.ul`
 `
 
 interface ErrorMessageProps {
-    ipcRenderer: IpcRenderer
+    readonly ipcRenderer: IpcRenderer
 }
 
 const ErrorMessage: React.FC<ErrorMessageProps> = (props: ErrorMessageProps) => {

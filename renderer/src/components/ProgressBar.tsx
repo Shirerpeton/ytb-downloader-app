@@ -4,8 +4,8 @@ import { IpcRenderer } from 'electron';
 import { IpcRendererEvent } from 'electron/renderer';
 
 interface BarProps {
-    width: number,
-    isActive: boolean
+    readonly width: number,
+    readonly isActive: boolean
 }
 
 const Bar = styled.div<BarProps>`
@@ -35,8 +35,8 @@ const Bar = styled.div<BarProps>`
 `
 
 interface ProgressBarProps {
-    ipcRenderer: IpcRenderer,
-    index?: number
+    readonly ipcRenderer: IpcRenderer,
+    readonly index?: number
 }
 
 const ProgressBar: React.FC<ProgressBarProps> = ({ ipcRenderer, index }: ProgressBarProps) => {
