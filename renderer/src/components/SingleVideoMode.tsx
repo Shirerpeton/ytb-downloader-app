@@ -85,6 +85,7 @@ const SingleVideoMode: React.FC<SingleVideoModeProps> = ({config, ipcRenderer, i
     const [audioFormat, setAudioFormat] = useState<number>(0);
     const [videoFormat, setVideoFormat] = useState<number>(0);
     const [fileType, setFileType] = useState<FileType | null>(null);
+    const [reencode, setReencode] = useState<boolean>(true);
 
     const selectTrack = (formatType: 'audio' | 'video'): ((newFormat: number) => void) => {
         const selectAudioTrack = (newAudioFormat: number) => {
@@ -121,14 +122,14 @@ const SingleVideoMode: React.FC<SingleVideoModeProps> = ({config, ipcRenderer, i
         const actualVideoFormat: ytdl.videoFormat | null = (videoFormat === 0) ? null : ytbVideoInfo.videoFormats[videoFormat - 1];
         if (fileType !== null) {
             setIsProcessing(true);
-            await ipcRenderer.invoke('process', ytbVideoInfo.info, actualAudioFormat, actualVideoFormat, fileType.extension, config);
+            await ipcRenderer.invoke('process', ytbVideoInfo.info, actualAudioFormat, actualVideoFormat, fileType.extension, reencode, config);
             setIsProcessing(false);
         }
     }
 
     return (
         <React.Fragment>
-            <LinkForm link={link} setLink={setLink} isGettingInfo={isGettingInfo} setIsGettingInfo={setIsGettingInfo} setYtbVideoInfo={setYtbVideoInfo} ipcRenderer={ipcRenderer} config={config} selectTrack={selectTrack}/>
+            <LinkForm link={link} setLink={setLink} isGettingInfo={isGettingInfo} setIsGettingInfo={setIsGettingInfo} setYtbVideoInfo={setYtbVideoInfo} ipcRenderer={ipcRenderer} config={config} selectTrack={selectTrack} setReencode={setReencode}/>
             <Br />
             <Section>
                 <SectionTitle>Video Info</SectionTitle>
@@ -154,9 +155,9 @@ const SingleVideoMode: React.FC<SingleVideoModeProps> = ({config, ipcRenderer, i
             </Section>
             <Br />
             <Section>
-                <SectionTitle>Convert</SectionTitle>
+                <SectionTitle>Output</SectionTitle>
                 <SelectRow>
-                    <SmallLabel>Format: </SmallLabel>
+                    <SmallLabel>Container: </SmallLabel>
                     <Selector value={fileType ? fileType.extension : ''} onChange={({ target: { value } }) => { if (!isProcessing && !isGettingInfo) setFileType(oldFileType => oldFileType ? { type: oldFileType.type, extension: value } : null) }} disabled={isProcessing || isGettingInfo}>
                         {ytbVideoInfo && fileType ?
                             (fileType.type === 'video' ?
@@ -164,6 +165,13 @@ const SingleVideoMode: React.FC<SingleVideoModeProps> = ({config, ipcRenderer, i
                                 config.audioFormats.map((format: string, index: number) => <option value={format} key={index}>{format}</option>))
                             : null}
                     </Selector>
+                </SelectRow>
+                <SelectRow>
+                <SmallLabel>Re-encode: </SmallLabel>
+                <Selector value={reencode? 'true' : 'false'} onChange={({target: { value } }) => {setReencode(value === 'true')}}>
+                    <option value={'true'}>Yes</option>
+                    <option value={'false'}>No</option>
+                </Selector>
                 </SelectRow>
                 <ProgressBar ipcRenderer={ipcRenderer} />
                 <Space />

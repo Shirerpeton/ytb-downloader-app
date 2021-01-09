@@ -36,11 +36,12 @@ interface LinkFormProps {
   readonly ipcRenderer: IpcRenderer,
   readonly config: AppConfig,
   readonly selectTrack: (formatType: 'audio' | 'video') => (newFormat: number) => void,
+  readonly setReencode: React.Dispatch<React.SetStateAction<boolean>>,
   readonly isGettingInfo: boolean,
   readonly setIsGettingInfo: React.Dispatch<React.SetStateAction<boolean>>,
 }
 
-const LinkFormComponent: React.FC<LinkFormProps> = ({ link, setLink, setYtbVideoInfo, ipcRenderer, config, selectTrack, isGettingInfo, setIsGettingInfo }: LinkFormProps) => {
+const LinkFormComponent: React.FC<LinkFormProps> = ({ link, setLink, setYtbVideoInfo, ipcRenderer, config, selectTrack, setReencode, isGettingInfo, setIsGettingInfo }: LinkFormProps) => {
 
   const [error, setError] = useState<string>('');
 
@@ -61,6 +62,7 @@ const LinkFormComponent: React.FC<LinkFormProps> = ({ link, setLink, setYtbVideo
       const { audioFormat, videoFormat } = utils.getDefaultFormats(audioFormats, videoFormats, config);
       selectTrack('audio')(audioFormat);
       selectTrack('video')(videoFormat);
+      setReencode(config.reencode);
       setLink('');
     }
     setIsGettingInfo(false);

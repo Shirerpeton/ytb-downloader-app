@@ -23,7 +23,7 @@ function createWindow() {
         backgroundColor: '#191a1d'
     });
 
-    mainWindow.removeMenu();
+    //mainWindow.removeMenu();
 
     mainWindow.webContents.on('did-finish-load', () => {
         mainWindow.show();
@@ -65,12 +65,12 @@ function createWindow() {
         return await helpers.loadConfig(msg);
     });
 
-    ipcMain.handle('process', async (_: IpcMainInvokeEvent, info: ytdl.videoInfo, audioFormat: ytdl.videoFormat, videoFormat: ytdl.videoFormat, extension: string, config: AppConfig, index?: number): Promise<number> => {
+    ipcMain.handle('process', async (_: IpcMainInvokeEvent, info: ytdl.videoInfo, audioFormat: ytdl.videoFormat, videoFormat: ytdl.videoFormat, extension: string, convert: boolean, config: AppConfig, index?: number): Promise<number> => {
         const actualMsg: Messages = { sendStatusMessage: sendMessage('status-line-message', index), sendProgressMessage: sendMessage('progress-bar-progress', index), sendProgressToggle: sendMessage('progress-bar-toggle', index), sendErrorMessage };
         actualMsg.sendProgressToggle(true);
         const { audioFileName, videoFileName } = await helpers.download(info, audioFormat, videoFormat, actualMsg);
         actualMsg.sendStatusMessage('Converting files');
-        await helpers.convert(info, audioFormat, videoFormat, audioFileName, videoFileName, extension, actualMsg, config);
+        await helpers.convert(info, audioFormat, videoFormat, audioFileName, videoFileName, extension, convert, actualMsg, config);
         actualMsg.sendStatusMessage('Cleaning up');
         await helpers.cleanUp(audioFileName, videoFileName);
         actualMsg.sendStatusMessage('Done');

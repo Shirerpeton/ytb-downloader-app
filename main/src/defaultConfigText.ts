@@ -27,4 +27,7 @@ audioQuality:
 
 #video quality (resolution) if the first option is unavailable tries second etc
 videoQuality: 
+
+#reencode
+reencode: true
 `;

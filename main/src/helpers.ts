@@ -103,62 +103,76 @@ interface ConvertFunc {
         videoFormat: ytdl.videoFormat | null, audioFileName: string,
         videoFileName: string,
         selectedFormat: string,
+        convert: boolean,
         msg: Messages,
         config: AppConfig
     ): Promise<void>
 }
 
-const convert: ConvertFunc = async (info, audioFormat, videoFormat, audioFileName, videoFileName, selectedFormat, msg, config) => {
+const convert: ConvertFunc = async (info, audioFormat, videoFormat, audioFileName, videoFileName, selectedFormat, convert, msg, config) => {
     const title: string = (info.videoDetails.title).replace(/[<>:"/\\/|?*]/g, '_');
     ffmpeg.setFfmpegPath(config.ffmpegPath);
     await fs.promises.mkdir(config.outputDir, { recursive: true });
 
     let query: FfmpegCommand = ffmpeg();
-    
+
     if (videoFormat) {
         //if video is present
-        query = query.input(tempDir + videoFileName).videoCodec('libx264');
-        let outputOptions = ['-metadata:s:v:0 language='];
-        if (audioFormat) {
-            let audioBitrate = '128k';
-            if (audioFormat.audioBitrate) {
-                if (audioFormat.audioBitrate <= 64)
-                    audioBitrate = '64k';
-                else if (audioFormat.audioBitrate <= 128)
-                    audioBitrate = '128k';
-                else if (audioFormat.audioBitrate <= 160)
-                    audioBitrate = '160k';
-                else if (audioFormat.audioBitrate <= 256)
-                    audioBitrate = '256k';
+        query = query.input(tempDir + videoFileName);
+        if (!convert) {
+            query = query.videoCodec('copy');
+            if (audioFormat){
+                query = query.input(tempDir + audioFileName).audioCodec('copy');
             }
-            query.input(tempDir + audioFileName).audioCodec('aac').audioBitrate(audioBitrate);
-            outputOptions = [...outputOptions, '-profile:v high', '-level:v 4.0', '-metadata:s:a:0 language='];
+            query = query.output(config.outputDir + title + '.' + selectedFormat);
+        } else {
+            query = query.videoCodec('libx264');
+            let outputOptions = ['-metadata:s:v:0 language='];
+            if (audioFormat) {
+                let audioBitrate = '128k';
+                if (audioFormat.audioBitrate) {
+                    if (audioFormat.audioBitrate <= 64)
+                        audioBitrate = '64k';
+                    else if (audioFormat.audioBitrate <= 128)
+                        audioBitrate = '128k';
+                    else if (audioFormat.audioBitrate <= 160)
+                        audioBitrate = '160k';
+                    else if (audioFormat.audioBitrate <= 256)
+                        audioBitrate = '256k';
+                }
+                query.input(tempDir + audioFileName).audioCodec('aac').audioBitrate(audioBitrate);
+                outputOptions = [...outputOptions, '-profile:v high', '-level:v 4.0', '-metadata:s:a:0 language='];
+            }
+            query.output(config.outputDir + title + '.' + selectedFormat).outputOptions(outputOptions);
         }
-        query.output(config.outputDir + title + '.' + selectedFormat).outputOptions(outputOptions);
     } else if (audioFormat) {
         //audio only
         query = query.input(tempDir + audioFileName).noVideo();
-        let audioBitrate = '128k';
-        let audioQuality = '-q:a 1';
-        if (audioFormat.audioBitrate) {
-            if (audioFormat.audioBitrate <= 64) {
-                audioQuality = '-q:a 8';
-                audioBitrate = '64k';
-            } else if (audioFormat.audioBitrate <= 128) {
-                audioQuality = '-q:a 5';
-                audioBitrate = '128k';
-            } else if (audioFormat.audioBitrate <= 160) {
-                audioQuality = '-q:a 2';
-                audioBitrate = '160k';
-            } else if (audioFormat.audioBitrate <= 256) {
-                audioQuality = '-q:a 0';
-                audioBitrate = '256k';
+        if (!convert) {
+            query = query.audioCodec('copy').output(config.outputDir + title + '.' + audioFormat.container);
+        } else {
+            let audioBitrate = '128k';
+            let audioQuality = '-q:a 1';
+            if (audioFormat.audioBitrate) {
+                if (audioFormat.audioBitrate <= 64) {
+                    audioQuality = '-q:a 8';
+                    audioBitrate = '64k';
+                } else if (audioFormat.audioBitrate <= 128) {
+                    audioQuality = '-q:a 5';
+                    audioBitrate = '128k';
+                } else if (audioFormat.audioBitrate <= 160) {
+                    audioQuality = '-q:a 2';
+                    audioBitrate = '160k';
+                } else if (audioFormat.audioBitrate <= 256) {
+                    audioQuality = '-q:a 0';
+                    audioBitrate = '256k';
+                }
             }
-        }
-        if (selectedFormat === 'aac')
-            query.audioCodec('aac').audioBitrate(audioBitrate).output(config.outputDir + title + '.' + selectedFormat).outputOptions(['-profile:v high', '-level:v 4.0', '-metadata:s:a:0 language=']);
-        else (selectedFormat === 'mp3')
+            if (selectedFormat === 'aac')
+                query.audioCodec('aac').audioBitrate(audioBitrate).output(config.outputDir + title + '.' + selectedFormat).outputOptions(['-profile:v high', '-level:v 4.0', '-metadata:s:a:0 language=']);
+            else (selectedFormat === 'mp3')
             query.audioCodec('libmp3lame').output(config.outputDir + title + '.' + selectedFormat).outputOptions([audioQuality]);
+        }
     }
 
     query.on('error', err => {
@@ -226,6 +240,9 @@ const loadConfig = async (msg: Messages): Promise<AppConfig> => {
                 config[pair[0]] = pair[1] === 'true' ? true : false;
             else if ((pair[0] === 'noAudio') && ((pair[1] === 'true') || (pair[1] === 'false')))
                 config[pair[0]] = pair[1] === 'true' ? true : false;
+            else if ((pair[0] === 'reencode') && ((pair[1] === 'true') || (pair[1] === 'false'))) {
+                config[pair[0]] = pair[1] === 'true' ? true : false;
+            }
             else if (pair[0] === 'audioQuality') {
                 if (pair[1].length !== 0) {
                     const audioQualityLabelCandidates: string[] = pair[1].split(',');

@@ -65,13 +65,14 @@ const AddLinkForm: React.FC<AddLinkFormProps> = ({link, setLink, ipcRenderer, co
             const audioFormats: ytdl.videoFormat[] = utils.getAudioFormats(infoOrNull.formats);
             const videoFormats: ytdl.videoFormat[] = utils.getVideoFormats(infoOrNull.formats);
             const {audioFormat, videoFormat} = utils.getDefaultFormats(audioFormats, videoFormats, config);
+            const reencode: boolean = config.reencode;
             let extension: string = '';
             if (videoFormat !== 0)
                 extension = config.defaultVideoFormat;
             else if (audioFormat !== 0)
                 extension = config.defaultAudioFormat;
             if (extension !== '')
-                setVideos(oldVideos => [...oldVideos, {info: infoOrNull, audioFormat, videoFormat, extension, audioFormats, videoFormats, status: 'wait'}]);
+                setVideos(oldVideos => [...oldVideos, {info: infoOrNull, audioFormat, videoFormat, extension, audioFormats, videoFormats, status: 'wait', reencode}]);
             setLink('');
         }
         setIsGettingInfo(false);

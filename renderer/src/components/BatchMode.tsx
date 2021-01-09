@@ -93,7 +93,7 @@ const BatchMode: React.FC<BatchModeProps> = ({config, ipcRenderer, isGettingInfo
             const actualVideoFormat: ytdl.videoFormat | null = (video.videoFormat === 0) ? null : video.videoFormats[video.videoFormat - 1];
             if (video.status === 'wait') {
                 processingIds.push(index);
-                return ipcRenderer.invoke('process', video.info, actualAudioFormat, actualVideoFormat, video.extension, config, index);
+                return ipcRenderer.invoke('process', video.info, actualAudioFormat, actualVideoFormat, video.extension, video.reencode, config, index);
             } else return null;
         }).filter(elem => elem !== null) as unknown as Promise<number>[]);
         setVideos(oldVideos => oldVideos.map((video: Video): Video => ({ ...video, status: video.status === 'wait' ? 'processing' : video.status })));

@@ -11,7 +11,8 @@ const defaultConfig: AppConfig = {
   noVideo: false,
   noAudio: false,
   audioQuality: [],
-  videoQuality: []
+  videoQuality: [],
+  reencode: true
 }
 
 export default defaultConfig;

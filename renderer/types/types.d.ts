@@ -17,7 +17,8 @@ export interface AppConfig {
     noAudio: boolean,
     highestQuality: boolean,
     audioQuality: AudioQualityLabel[],
-    videoQuality: VideoQualityLabel[]
+    videoQuality: VideoQualityLabel[],
+    reencode: boolean
 }
 
 export interface YtbVideoInfo {
@@ -45,5 +46,6 @@ export interface Video {
     audioFormat: number,
     videoFormat: number,
     extension: string,
-    status: 'wait' | 'processing' | 'done'
+    status: 'wait' | 'processing' | 'done',
+    reencode: boolean
 }
